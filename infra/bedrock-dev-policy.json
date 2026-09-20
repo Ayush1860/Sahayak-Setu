@@ -1,0 +1,28 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DiscoverModels",
+      "Effect": "Allow",
+      "Action": [
+        "bedrock:ListFoundationModels",
+        "bedrock:GetFoundationModel",
+        "bedrock:ListInferenceProfiles",
+        "bedrock:GetInferenceProfile"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "InvokeClaudeOnly",
+      "Effect": "Allow",
+      "Action": [
+        "bedrock:InvokeModel",
+        "bedrock:InvokeModelWithResponseStream"
+      ],
+      "Resource": [
+        "arn:aws:bedrock:*::foundation-model/anthropic.*",
+        "arn:aws:bedrock:*:624606539839:inference-profile/*"
+      ]
+    }
+  ]
+}
