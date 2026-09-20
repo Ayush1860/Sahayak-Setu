@@ -1,0 +1,17 @@
+The scheme corpus in this directory is licensed under
+Creative Commons Attribution 4.0 International (CC BY 4.0).
+
+Full text: https://creativecommons.org/licenses/by/4.0/legalcode
+
+You are free to share and adapt this material for any purpose, including
+commercially, provided you give appropriate credit and indicate if changes
+were made.
+
+Note on provenance: the underlying facts are drawn from public Indian
+government documents, which are not themselves covered by this licence. What
+is licensed here is the structured transcription: the JSON encoding, the
+criterion decomposition, the translations, and the verification metadata.
+
+Note on accuracy: this material is informational only and carries no
+warranty. See docs/VERIFICATION.md for how each entry was checked, and the
+disclaimer in README.md.

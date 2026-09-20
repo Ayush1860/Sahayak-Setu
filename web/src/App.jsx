@@ -227,10 +227,15 @@ export default function App() {
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  send(draft);
-                }
+                // isComposing matters here more than in most apps. Typing
+                // Devanagari on Android goes through an IME, and Enter while
+                // a syllable is still being composed means "accept this
+                // character", not "send". Without this guard the message
+                // fires mid-word for exactly the users we built this for.
+                if (e.key !== "Enter" || e.shiftKey) return;
+                if (e.nativeEvent?.isComposing || e.keyCode === 229) return;
+                e.preventDefault();
+                send(draft);
               }}
               placeholder={t.placeholder}
               aria-label={t.placeholder}
