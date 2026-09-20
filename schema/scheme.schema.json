@@ -1,0 +1,264 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/OWNER/yojana/schema/scheme.schema.json",
+  "title": "Government scheme",
+  "description": "One government scheme. The eligibility block is evaluated by plain Python in api/matcher.py. No model is involved in deciding eligibility.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "scheme_id",
+    "name_en",
+    "name_hi",
+    "authority",
+    "what_you_get",
+    "eligibility",
+    "how_to_apply",
+    "documents_required",
+    "next_physical_step",
+    "source_urls",
+    "source_pages",
+    "last_verified"
+  ],
+  "properties": {
+    "scheme_id": {
+      "description": "Stable machine id. Must equal the filename without .json.",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(_[a-z0-9]+)*$"
+    },
+    "PLACEHOLDER": {
+      "description": "true means every value in this file is fake and must not be shown to a user. Set by tooling, cleared by a human after hand verification.",
+      "type": "boolean"
+    },
+    "name_en": { "type": "string", "minLength": 1 },
+    "name_hi": { "type": "string", "minLength": 1 },
+    "authority": {
+      "description": "The body that runs the scheme, and the level of government it sits at.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name_en", "name_hi", "level"],
+      "properties": {
+        "name_en": { "type": "string", "minLength": 1 },
+        "name_hi": { "type": "string", "minLength": 1 },
+        "level": { "enum": ["central", "state", "district"] },
+        "state": { "type": "string" }
+      }
+    },
+    "what_you_get": {
+      "description": "The benefit, in the user's terms. Free text only, never a computed number.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["summary_en", "summary_hi", "source_page"],
+      "properties": {
+        "summary_en": { "type": "string", "minLength": 1 },
+        "summary_hi": { "type": "string", "minLength": 1 },
+        "source_page": { "$ref": "#/$defs/source_page" }
+      }
+    },
+
+    "eligibility": {
+      "description": "Read by api/matcher.py. Each criterion evaluates to PASS, FAIL or UNKNOWN against a profile.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["criteria"],
+      "properties": {
+        "criteria": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/criterion" }
+        },
+        "notes_en": {
+          "description": "Conditions that cannot be structured. Shown verbatim, never evaluated. If a note would change who qualifies, it belongs in criteria as test=manual instead.",
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "notes_hi": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+
+    "how_to_apply": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["step_en", "step_hi"],
+        "properties": {
+          "step_en": { "type": "string", "minLength": 1 },
+          "step_hi": { "type": "string", "minLength": 1 },
+          "url": { "type": "string", "format": "uri" },
+          "source_page": { "$ref": "#/$defs/source_page" }
+        }
+      }
+    },
+    "documents_required": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name_en", "name_hi"],
+        "properties": {
+          "name_en": { "type": "string", "minLength": 1 },
+          "name_hi": { "type": "string", "minLength": 1 },
+          "mandatory": { "type": "boolean", "default": true },
+          "source_page": { "$ref": "#/$defs/source_page" }
+        }
+      }
+    },
+    "next_physical_step": {
+      "description": "Which office to walk into and what to carry.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["office_en", "office_hi", "what_to_carry_en", "what_to_carry_hi"],
+      "properties": {
+        "office_en": { "type": "string", "minLength": 1 },
+        "office_hi": { "type": "string", "minLength": 1 },
+        "what_to_carry_en": { "type": "string", "minLength": 1 },
+        "what_to_carry_hi": { "type": "string", "minLength": 1 },
+        "helpline": { "type": "string" },
+        "source_page": { "$ref": "#/$defs/source_page" }
+      }
+    },
+
+    "source_urls": {
+      "description": "Official URLs only. api/validator.py strips any URL from model output that is not in this list.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["url", "title", "retrieved_on"],
+        "properties": {
+          "url": { "type": "string", "format": "uri", "pattern": "^https://" },
+          "title": { "type": "string", "minLength": 1 },
+          "retrieved_on": { "$ref": "#/$defs/date" },
+          "is_primary": { "type": "boolean" }
+        }
+      }
+    },
+    "source_pages": {
+      "description": "Every page of the source document this record draws on.",
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/source_page" }
+    },
+    "last_verified": {
+      "description": "Date a human last checked this record against the source. validate.py fails when missing or stale.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["date", "by"],
+      "properties": {
+        "date": { "$ref": "#/$defs/date" },
+        "by": { "type": "string", "minLength": 1 },
+        "method": {
+          "enum": [
+            "read_source_document",
+            "official_website",
+            "office_visit",
+            "phone_confirmation"
+          ]
+        }
+      }
+    }
+  },
+
+  "$defs": {
+    "date": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "source_page": {
+      "description": "1-based page number in the source document.",
+      "type": "integer",
+      "minimum": 1
+    },
+    "profile_field": {
+      "description": "Closed vocabulary. Exactly the keys api/extractor.py may emit and api/matcher.py may read. Adding a field is a deliberate edit here first.",
+      "enum": [
+        "age",
+        "caste_category",
+        "gender",
+        "area_type",
+        "has_existing_unit",
+        "has_udyam_registration",
+        "annual_income_inr",
+        "state",
+        "district",
+        "sector",
+        "investment_planned_inr"
+      ]
+    },
+    "criterion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "criterion_id",
+        "field",
+        "test",
+        "label_en",
+        "label_hi",
+        "source_page"
+      ],
+      "properties": {
+        "criterion_id": {
+          "description": "Unique within this scheme. Appears in matcher output so a failure is traceable to one line of one file.",
+          "type": "string",
+          "pattern": "^[a-z0-9]+(_[a-z0-9]+)*$"
+        },
+        "field": { "$ref": "#/$defs/profile_field" },
+        "test": {
+          "description": "range: numeric min/max. one_of: value in values. none_of: value not in values. boolean: value equals expected. manual: cannot be decided by code, always UNKNOWN, always surfaced as a thing to confirm at the office.",
+          "enum": ["range", "one_of", "none_of", "boolean", "manual"]
+        },
+        "min": { "type": "number" },
+        "max": { "type": "number" },
+        "values": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": ["string", "number"] }
+        },
+        "expected": { "type": "boolean" },
+        "label_en": {
+          "description": "The criterion as a plain statement of what is required, e.g. 'Age 18 to 45'. Shown as the reason a scheme matched.",
+          "type": "string",
+          "minLength": 1
+        },
+        "label_hi": { "type": "string", "minLength": 1 },
+        "fail_reason_en": {
+          "description": "Optional override for the excluded reason. Defaults to a sentence built from label_en.",
+          "type": "string"
+        },
+        "fail_reason_hi": { "type": "string" },
+        "source_page": { "$ref": "#/$defs/source_page" }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "test": { "const": "range" } },
+            "required": ["test"]
+          },
+          "then": {
+            "anyOf": [{ "required": ["min"] }, { "required": ["max"] }]
+          }
+        },
+        {
+          "if": {
+            "properties": { "test": { "enum": ["one_of", "none_of"] } },
+            "required": ["test"]
+          },
+          "then": { "required": ["values"] }
+        },
+        {
+          "if": {
+            "properties": { "test": { "const": "boolean" } },
+            "required": ["test"]
+          },
+          "then": { "required": ["expected"] }
+        }
+      ]
+    }
+  }
+}

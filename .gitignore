@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+.aws-sam/
+pipeline/out/
+node_modules/
+web/dist/
+web/build/
+*.pdf
+.DS_Store

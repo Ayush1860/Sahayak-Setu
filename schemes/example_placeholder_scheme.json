@@ -1,0 +1,121 @@
+{
+  "scheme_id": "example_placeholder_scheme",
+  "PLACEHOLDER": true,
+  "name_en": "PLACEHOLDER - not a real scheme",
+  "name_hi": "PLACEHOLDER - यह असली योजना नहीं है",
+  "authority": {
+    "name_en": "PLACEHOLDER Authority",
+    "name_hi": "PLACEHOLDER विभाग",
+    "level": "state",
+    "state": "PLACEHOLDER"
+  },
+  "what_you_get": {
+    "summary_en": "PLACEHOLDER benefit of 111 percent on a fake amount. Not real. Do not show to a user.",
+    "summary_hi": "PLACEHOLDER लाभ। यह असली जानकारी नहीं है।",
+    "source_page": 1
+  },
+  "eligibility": {
+    "criteria": [
+      {
+        "criterion_id": "age_range",
+        "field": "age",
+        "test": "range",
+        "min": 11,
+        "max": 99,
+        "label_en": "PLACEHOLDER age 11 to 99",
+        "label_hi": "PLACEHOLDER उम्र 11 से 99",
+        "source_page": 1
+      },
+      {
+        "criterion_id": "caste_category",
+        "field": "caste_category",
+        "test": "one_of",
+        "values": ["PLACEHOLDER_A", "PLACEHOLDER_B"],
+        "label_en": "PLACEHOLDER category A or B",
+        "label_hi": "PLACEHOLDER श्रेणी A या B",
+        "source_page": 2
+      },
+      {
+        "criterion_id": "area_type",
+        "field": "area_type",
+        "test": "one_of",
+        "values": ["rural"],
+        "label_en": "PLACEHOLDER rural area only",
+        "label_hi": "PLACEHOLDER केवल ग्रामीण क्षेत्र",
+        "source_page": 2
+      },
+      {
+        "criterion_id": "no_existing_unit",
+        "field": "has_existing_unit",
+        "test": "boolean",
+        "expected": false,
+        "label_en": "PLACEHOLDER must not already run a unit",
+        "label_hi": "PLACEHOLDER पहले से इकाई नहीं होनी चाहिए",
+        "fail_reason_en": "PLACEHOLDER: an existing unit disqualifies",
+        "fail_reason_hi": "PLACEHOLDER: पहले से इकाई होने पर पात्रता नहीं",
+        "source_page": 3
+      },
+      {
+        "criterion_id": "udyam_registration",
+        "field": "has_udyam_registration",
+        "test": "boolean",
+        "expected": true,
+        "label_en": "PLACEHOLDER Udyam registration required",
+        "label_hi": "PLACEHOLDER उद्यम पंजीकरण आवश्यक",
+        "source_page": 3
+      },
+      {
+        "criterion_id": "office_confirmation",
+        "field": "sector",
+        "test": "manual",
+        "label_en": "PLACEHOLDER condition that code cannot decide, confirm at the office",
+        "label_hi": "PLACEHOLDER शर्त जो कार्यालय में जाँचनी होगी",
+        "source_page": 4
+      }
+    ],
+    "notes_en": [
+      "PLACEHOLDER note. Information only, never evaluated by the matcher."
+    ],
+    "notes_hi": [
+      "PLACEHOLDER टिप्पणी। केवल जानकारी के लिए।"
+    ]
+  },
+  "how_to_apply": [
+    {
+      "step_en": "PLACEHOLDER step one.",
+      "step_hi": "PLACEHOLDER पहला चरण।",
+      "url": "https://example.invalid/placeholder",
+      "source_page": 5
+    }
+  ],
+  "documents_required": [
+    {
+      "name_en": "PLACEHOLDER document",
+      "name_hi": "PLACEHOLDER दस्तावेज़",
+      "mandatory": true,
+      "source_page": 5
+    }
+  ],
+  "next_physical_step": {
+    "office_en": "PLACEHOLDER office",
+    "office_hi": "PLACEHOLDER कार्यालय",
+    "what_to_carry_en": "PLACEHOLDER documents",
+    "what_to_carry_hi": "PLACEHOLDER दस्तावेज़",
+    "helpline": "0000000000",
+    "source_page": 6
+  },
+  "source_urls": [
+    {
+      "url": "https://example.invalid/placeholder",
+      "title": "PLACEHOLDER source",
+      "retrieved_on": "2026-09-20",
+      "is_primary": true
+    }
+  ],
+  "source_pages": [1, 2, 3, 4, 5, 6],
+  "last_verified": {
+    "date": "2026-09-20",
+    "by": "PLACEHOLDER - nobody has verified this",
+    "method": "read_source_document"
+  }
+}
