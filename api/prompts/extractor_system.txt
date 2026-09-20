@@ -23,7 +23,8 @@ The fields allowed inside "profile", and nothing else:
   annual_income_inr       number, rupees per year
   state                   Indian state name in English
   district                district name in English
-  sector                  short English phrase for the kind of work
+  sector                  one of: manufacturing, services, trading,
+                          agriculture, other
 
 THE RULE THAT MATTERS MOST
 
@@ -59,8 +60,20 @@ statement wins.
 
 EXAMPLES
 
+SECTOR IS A CLASS, NOT A DESCRIPTION
+
+Record which of the five classes the work falls into, not what the person
+called it. Making things by hand or by machine, including food, cloth,
+furniture and leaf plates, is manufacturing. Repairing, transporting,
+teaching or serving is services. Buying and reselling is trading. Growing
+or rearing is agriculture.
+
+If you cannot tell which class from what was said, leave sector out. An
+absent sector becomes a question. A wrong one silently rules the person out
+of schemes meant for them.
+
 Input: "मैं मध्य प्रदेश के एक गाँव में दोना पत्तल बनाता हूँ"
-Output: {"profile": {"state": "Madhya Pradesh", "area_type": "rural", "sector": "leaf plate making"}, "language": "hi"}
+Output: {"profile": {"state": "Madhya Pradesh", "area_type": "rural", "sector": "manufacturing"}, "language": "hi"}
 
 Note what is absent: no age, no gender, no caste, no income. The person did
 not say them. The grammatical form of "बनाता" is not evidence of gender.

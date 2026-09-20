@@ -29,67 +29,122 @@
       "description": "true means every value in this file is fake and must not be shown to a user. Set by tooling, cleared by a human after hand verification.",
       "type": "boolean"
     },
-    "name_en": { "type": "string", "minLength": 1 },
-    "name_hi": { "type": "string", "minLength": 1 },
+    "name_en": {
+      "type": "string",
+      "minLength": 1
+    },
+    "name_hi": {
+      "type": "string",
+      "minLength": 1
+    },
     "authority": {
       "description": "The body that runs the scheme, and the level of government it sits at.",
       "type": "object",
       "additionalProperties": false,
-      "required": ["name_en", "name_hi", "level"],
+      "required": [
+        "name_en",
+        "level"
+      ],
       "properties": {
-        "name_en": { "type": "string", "minLength": 1 },
-        "name_hi": { "type": "string", "minLength": 1 },
-        "level": { "enum": ["central", "state", "district"] },
-        "state": { "type": "string" }
+        "name_en": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name_hi": {
+          "type": "string",
+          "minLength": 1
+        },
+        "level": {
+          "enum": [
+            "central",
+            "state",
+            "district"
+          ]
+        },
+        "state": {
+          "type": "string"
+        }
       }
     },
     "what_you_get": {
       "description": "The benefit, in the user's terms. Free text only, never a computed number.",
       "type": "object",
       "additionalProperties": false,
-      "required": ["summary_en", "summary_hi", "source_page"],
+      "required": [
+        "summary_en",
+        "summary_hi",
+        "source_page"
+      ],
       "properties": {
-        "summary_en": { "type": "string", "minLength": 1 },
-        "summary_hi": { "type": "string", "minLength": 1 },
-        "source_page": { "$ref": "#/$defs/source_page" }
+        "summary_en": {
+          "type": "string",
+          "minLength": 1
+        },
+        "summary_hi": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_page": {
+          "$ref": "#/$defs/source_page"
+        }
       }
     },
-
     "eligibility": {
       "description": "Read by api/matcher.py. Each criterion evaluates to PASS, FAIL or UNKNOWN against a profile.",
       "type": "object",
       "additionalProperties": false,
-      "required": ["criteria"],
+      "required": [
+        "criteria"
+      ],
       "properties": {
         "criteria": {
           "type": "array",
           "minItems": 1,
-          "items": { "$ref": "#/$defs/criterion" }
+          "items": {
+            "$ref": "#/$defs/criterion"
+          }
         },
         "notes_en": {
           "description": "Conditions that cannot be structured. Shown verbatim, never evaluated. If a note would change who qualifies, it belongs in criteria as test=manual instead.",
           "type": "array",
-          "items": { "type": "string" }
+          "items": {
+            "type": "string"
+          }
         },
         "notes_hi": {
           "type": "array",
-          "items": { "type": "string" }
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
-
     "how_to_apply": {
       "type": "array",
       "minItems": 1,
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["step_en", "step_hi"],
+        "required": [
+          "step_en",
+          "step_hi"
+        ],
         "properties": {
-          "step_en": { "type": "string", "minLength": 1 },
-          "step_hi": { "type": "string", "minLength": 1 },
-          "url": { "type": "string", "format": "uri" },
-          "source_page": { "$ref": "#/$defs/source_page" }
+          "step_en": {
+            "type": "string",
+            "minLength": 1
+          },
+          "step_hi": {
+            "type": "string",
+            "minLength": 1
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "source_page": {
+            "$ref": "#/$defs/source_page"
+          }
         }
       }
     },
@@ -99,12 +154,26 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["name_en", "name_hi"],
+        "required": [
+          "name_en",
+          "name_hi"
+        ],
         "properties": {
-          "name_en": { "type": "string", "minLength": 1 },
-          "name_hi": { "type": "string", "minLength": 1 },
-          "mandatory": { "type": "boolean", "default": true },
-          "source_page": { "$ref": "#/$defs/source_page" }
+          "name_en": {
+            "type": "string",
+            "minLength": 1
+          },
+          "name_hi": {
+            "type": "string",
+            "minLength": 1
+          },
+          "mandatory": {
+            "type": "boolean",
+            "default": true
+          },
+          "source_page": {
+            "$ref": "#/$defs/source_page"
+          }
         }
       }
     },
@@ -112,17 +181,34 @@
       "description": "Which office to walk into and what to carry.",
       "type": "object",
       "additionalProperties": false,
-      "required": ["office_en", "office_hi", "what_to_carry_en", "what_to_carry_hi"],
+      "required": [
+        "office_en"
+      ],
       "properties": {
-        "office_en": { "type": "string", "minLength": 1 },
-        "office_hi": { "type": "string", "minLength": 1 },
-        "what_to_carry_en": { "type": "string", "minLength": 1 },
-        "what_to_carry_hi": { "type": "string", "minLength": 1 },
-        "helpline": { "type": "string" },
-        "source_page": { "$ref": "#/$defs/source_page" }
+        "office_en": {
+          "type": "string",
+          "minLength": 1
+        },
+        "office_hi": {
+          "type": "string",
+          "minLength": 1
+        },
+        "what_to_carry_en": {
+          "type": "string",
+          "minLength": 1
+        },
+        "what_to_carry_hi": {
+          "type": "string",
+          "minLength": 1
+        },
+        "helpline": {
+          "type": "string"
+        },
+        "source_page": {
+          "$ref": "#/$defs/source_page"
+        }
       }
     },
-
     "source_urls": {
       "description": "Official URLs only. api/validator.py strips any URL from model output that is not in this list.",
       "type": "array",
@@ -130,12 +216,27 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["url", "title", "retrieved_on"],
+        "required": [
+          "url",
+          "title",
+          "retrieved_on"
+        ],
         "properties": {
-          "url": { "type": "string", "format": "uri", "pattern": "^https://" },
-          "title": { "type": "string", "minLength": 1 },
-          "retrieved_on": { "$ref": "#/$defs/date" },
-          "is_primary": { "type": "boolean" }
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https://"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "retrieved_on": {
+            "$ref": "#/$defs/date"
+          },
+          "is_primary": {
+            "type": "boolean"
+          }
         }
       }
     },
@@ -143,16 +244,26 @@
       "description": "Every page of the source document this record draws on.",
       "type": "array",
       "minItems": 1,
-      "items": { "$ref": "#/$defs/source_page" }
+      "items": {
+        "$ref": "#/$defs/source_page"
+      }
     },
     "last_verified": {
       "description": "Date a human last checked this record against the source. validate.py fails when missing or stale.",
       "type": "object",
       "additionalProperties": false,
-      "required": ["date", "by"],
+      "required": [
+        "date",
+        "by"
+      ],
       "properties": {
-        "date": { "$ref": "#/$defs/date" },
-        "by": { "type": "string", "minLength": 1 },
+        "date": {
+          "$ref": "#/$defs/date"
+        },
+        "by": {
+          "type": "string",
+          "minLength": 1
+        },
         "method": {
           "enum": [
             "read_source_document",
@@ -162,9 +273,80 @@
           ]
         }
       }
+    },
+    "verified": {
+      "description": "false means transcribed from source but not yet re-checked by a human. Unlike PLACEHOLDER the content is real, so the matcher does NOT withhold it.",
+      "type": "boolean"
+    },
+    "verification_notes": {
+      "description": "Free text from the person who transcribed it. What was read, what was not, and any page offsets.",
+      "type": "string"
+    },
+    "source_document": {
+      "description": "The document these page numbers refer to, including any offset between printed and PDF page numbers.",
+      "type": "string"
+    },
+    "disbursement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "summary_en",
+        "source_page"
+      ],
+      "properties": {
+        "summary_en": {
+          "type": "string",
+          "minLength": 1
+        },
+        "summary_hi": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_page": {
+          "$ref": "#/$defs/source_page"
+        }
+      }
+    },
+    "rate_modifiers": {
+      "description": "Rate variations as transcribed. Python selects which apply; no code and no model ever does arithmetic on these.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "modifier_id",
+          "applies_when",
+          "rate_en",
+          "source_page"
+        ],
+        "properties": {
+          "modifier_id": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(_[a-z0-9]+)*$"
+          },
+          "applies_when": {
+            "type": "string",
+            "minLength": 1
+          },
+          "rate_en": {
+            "type": "string",
+            "minLength": 1
+          },
+          "rate_hi": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source_page": {
+            "$ref": "#/$defs/source_page"
+          },
+          "when": {
+            "description": "Machine-evaluable selector, added in Task B. Absent means the modifier is informational only.",
+            "type": "object"
+          }
+        }
+      }
     }
   },
-
   "$defs": {
     "date": {
       "type": "string",
@@ -196,7 +378,6 @@
       "additionalProperties": false,
       "required": [
         "criterion_id",
-        "field",
         "test",
         "label_en",
         "label_hi",
@@ -208,55 +389,121 @@
           "type": "string",
           "pattern": "^[a-z0-9]+(_[a-z0-9]+)*$"
         },
-        "field": { "$ref": "#/$defs/profile_field" },
+        "field": {
+          "$ref": "#/$defs/profile_field"
+        },
         "test": {
           "description": "range: numeric min/max. one_of: value in values. none_of: value not in values. boolean: value equals expected. manual: cannot be decided by code, always UNKNOWN, always surfaced as a thing to confirm at the office.",
-          "enum": ["range", "one_of", "none_of", "boolean", "manual"]
+          "enum": [
+            "range",
+            "one_of",
+            "none_of",
+            "boolean",
+            "manual"
+          ]
         },
-        "min": { "type": "number" },
-        "max": { "type": "number" },
+        "min": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number"
+        },
         "values": {
           "type": "array",
           "minItems": 1,
-          "items": { "type": ["string", "number"] }
+          "items": {
+            "type": [
+              "string",
+              "number"
+            ]
+          }
         },
-        "expected": { "type": "boolean" },
+        "expected": {
+          "type": "boolean"
+        },
         "label_en": {
           "description": "The criterion as a plain statement of what is required, e.g. 'Age 18 to 45'. Shown as the reason a scheme matched.",
           "type": "string",
           "minLength": 1
         },
-        "label_hi": { "type": "string", "minLength": 1 },
+        "label_hi": {
+          "type": "string",
+          "minLength": 1
+        },
         "fail_reason_en": {
           "description": "Optional override for the excluded reason. Defaults to a sentence built from label_en.",
           "type": "string"
         },
-        "fail_reason_hi": { "type": "string" },
-        "source_page": { "$ref": "#/$defs/source_page" }
+        "fail_reason_hi": {
+          "type": "string"
+        },
+        "source_page": {
+          "$ref": "#/$defs/source_page"
+        }
       },
       "allOf": [
         {
           "if": {
-            "properties": { "test": { "const": "range" } },
-            "required": ["test"]
+            "properties": {
+              "test": {
+                "const": "range"
+              }
+            },
+            "required": [
+              "test"
+            ]
           },
           "then": {
-            "anyOf": [{ "required": ["min"] }, { "required": ["max"] }]
+            "anyOf": [
+              {
+                "required": [
+                  "min"
+                ]
+              },
+              {
+                "required": [
+                  "max"
+                ]
+              }
+            ]
           }
         },
         {
           "if": {
-            "properties": { "test": { "enum": ["one_of", "none_of"] } },
-            "required": ["test"]
+            "properties": {
+              "test": {
+                "enum": [
+                  "one_of",
+                  "none_of"
+                ]
+              }
+            },
+            "required": [
+              "test"
+            ]
           },
-          "then": { "required": ["values"] }
+          "then": {
+            "required": [
+              "values"
+            ]
+          }
         },
         {
           "if": {
-            "properties": { "test": { "const": "boolean" } },
-            "required": ["test"]
+            "properties": {
+              "test": {
+                "const": "boolean"
+              }
+            },
+            "required": [
+              "test"
+            ]
           },
-          "then": { "required": ["expected"] }
+          "then": {
+            "required": [
+              "expected"
+            ]
+          }
         }
       ]
     }

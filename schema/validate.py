@@ -98,6 +98,14 @@ def check_consistency(path: Path, scheme: dict, today: dt.date, max_age: int) ->
     if placeholder:
         warnings.append("PLACEHOLDER is true: every value in this file is fake and must be hand verified before use")
 
+    if scheme.get("verified") is False:
+        warnings.append("verified is false: content is real but has not had a second pass")
+
+    markers = ("NOT YET VERIFIED", "VERIFY THIS")
+    outstanding = sum(json.dumps(scheme, ensure_ascii=False).upper().count(m) for m in markers)
+    if outstanding:
+        warnings.append(f"{outstanding} field(s) still marked as unverified; they are hidden from users")
+
     if not any(u.get("is_primary") for u in scheme.get("source_urls") or []):
         warnings.append("no source_url is marked is_primary")
 

@@ -47,7 +47,18 @@ VOCABULARIES: dict[str, tuple[str, ...]] = {
     "area_type": ("rural", "urban"),
     "gender": ("female", "male", "other"),
     "caste_category": ("general", "obc", "sc", "st"),
+    # Broad activity class, not a description of the trade. Schemes are
+    # written against classes like "manufacturing", so the extractor has to
+    # emit one of these or nothing. "Leaf plate making" is manufacturing;
+    # if the model cannot tell, it omits the field and the criterion goes
+    # UNKNOWN, which is recoverable.
+    "sector": ("manufacturing", "services", "trading", "agriculture", "other"),
 }
+
+# Free-text fields that schemes reference by a stable slug. "Madhya Pradesh"
+# and "madhya pradesh" must both match a criterion written as
+# "madhya_pradesh", or the scheme silently never fires.
+SLUG_FIELDS: tuple[str, ...] = ("state", "district")
 
 # Sane bounds. A value outside these is treated as a misread, not a fact.
 NUMERIC_BOUNDS: dict[str, tuple[float, float]] = {

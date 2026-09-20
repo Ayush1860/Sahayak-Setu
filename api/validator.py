@@ -18,6 +18,8 @@ from __future__ import annotations
 import re
 from typing import Any, Sequence
 
+from redact import visible, visible_list
+
 URL_PATTERN = re.compile(r"https?://[^\s)\]\"'<>]+")
 
 REFUSAL = {
@@ -112,8 +114,9 @@ def validate(
             clean[key] = value
             removed_urls.extend(removed)
 
-        documents = card.get("documents")
-        clean["documents"] = [d for d in documents if isinstance(d, str)] if isinstance(documents, list) else []
+        clean["documents"] = visible_list(card.get("documents"))
+        for key in ("name", "what_you_get", "why_you_may_qualify", "next_step"):
+            clean[key] = visible(clean.get(key))
 
         # Citations are attached by us from the corpus, never copied from the
         # model. This is the only way a URL can reach the user.

@@ -201,6 +201,32 @@ def test_conversation_is_passed_through_in_order():
 def test_missing_list_shrinks_as_fields_arrive():
     out = run(json.dumps({"profile": {
         "age": 32, "area_type": "rural", "state": "Madhya Pradesh",
-        "sector": "leaf plates", "has_existing_unit": False,
+        "sector": "manufacturing", "has_existing_unit": False,
     }}))
     assert out["missing"] == []
+
+
+# ------------------------------------------- slugs and sector classification
+
+def test_state_is_slugged_so_scheme_criteria_can_match_it():
+    """A scheme says "madhya_pradesh". A person says "Madhya Pradesh"."""
+    out = run('{"profile": {"state": "Madhya Pradesh"}}')
+    assert out["profile"]["state"] == "madhya_pradesh"
+
+
+@pytest.mark.parametrize("written", ["madhya pradesh", "MADHYA PRADESH", " Madhya-Pradesh "])
+def test_state_slug_is_stable_across_spellings(written):
+    out = run(json.dumps({"profile": {"state": written}}))
+    assert out["profile"]["state"] == "madhya_pradesh"
+
+
+def test_sector_outside_the_vocabulary_is_dropped_not_guessed():
+    """A trade description is not an activity class. Dropping it makes the
+    criterion UNKNOWN, which is recoverable; guessing it is not."""
+    out = run('{"profile": {"sector": "leaf plate making"}}')
+    assert "sector" not in out["profile"]
+
+
+def test_sector_accepts_the_classes_schemes_are_written_against():
+    out = run('{"profile": {"sector": "Manufacturing"}}')
+    assert out["profile"]["sector"] == "manufacturing"

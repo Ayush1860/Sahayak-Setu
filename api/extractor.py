@@ -18,7 +18,8 @@ from pathlib import Path
 from typing import Any, Callable, Sequence
 
 import llm
-from fields import FIELD_TYPES, NUMERIC_BOUNDS, PROFILE_FIELDS, VOCABULARIES
+from fields import (FIELD_TYPES, NUMERIC_BOUNDS, PROFILE_FIELDS, SLUG_FIELDS,
+                    VOCABULARIES)
 from jsonio import ExtractionError, parse_json_object, strip_fences  # noqa: F401  (re-exported)
 
 PROMPT_PATH = Path(__file__).parent / "prompts" / "extractor_system.txt"
@@ -89,12 +90,17 @@ def clean_value(field: str, value: Any) -> Any | None:
     if not isinstance(value, str):
         return None
 
+    folded = unicodedata.normalize("NFKC", value).strip()
+
     allowed = VOCABULARIES.get(field)
     if allowed is not None:
-        folded = unicodedata.normalize("NFKC", value).strip().lower()
-        return folded if folded in allowed else None
+        lowered = folded.lower()
+        return lowered if lowered in allowed else None
 
-    return value
+    if field in SLUG_FIELDS:
+        return re.sub(r"[\s-]+", "_", folded.lower())
+
+    return folded
 
 
 def clean_profile(raw_profile: Any) -> dict[str, Any]:

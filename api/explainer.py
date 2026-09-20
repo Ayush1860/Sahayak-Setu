@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any, Callable, Sequence
 
 import llm
+from redact import visible, visible_list
 
 PROMPT_PATH = Path(__file__).parent / "prompts" / "explainer_system.txt"
 
@@ -34,23 +35,32 @@ def build_input(results: Sequence[dict], schemes: Sequence[dict], language: str)
         if not scheme:
             continue
         lang = language if language in ("hi", "en") else "en"
-        payload.append({
+        step = scheme.get("next_physical_step") or {}
+        entry = {
             "scheme_id": scheme["scheme_id"],
-            "name": scheme.get(f"name_{lang}") or scheme.get("name_en"),
-            "what_you_get": (scheme.get("what_you_get") or {}).get(f"summary_{lang}"),
-            "criteria_met": [c.get(f"label_{lang}") or c.get("label_en") for c in result["reasons_met"]],
-            "still_to_confirm": [c.get(f"label_{lang}") or c.get("label_en") for c in result.get("pending", [])],
-            "documents": [
-                d.get(f"name_{lang}") or d.get("name_en")
-                for d in scheme.get("documents_required") or []
-            ],
+            "name": visible(scheme.get(f"name_{lang}")) or visible(scheme.get("name_en")),
+            "what_you_get": visible((scheme.get("what_you_get") or {}).get(f"summary_{lang}")),
+            "criteria_met": visible_list(
+                [c.get(f"label_{lang}") or c.get("label_en") for c in result["reasons_met"]]
+            ),
+            "still_to_confirm": visible_list(
+                [c.get(f"label_{lang}") or c.get("label_en") for c in result.get("pending", [])]
+            ),
+            "documents": visible_list(
+                [d.get(f"name_{lang}") or d.get("name_en")
+                 for d in scheme.get("documents_required") or []]
+            ),
             "next_step": {
-                "office": (scheme.get("next_physical_step") or {}).get(f"office_{lang}"),
-                "what_to_carry": (scheme.get("next_physical_step") or {}).get(f"what_to_carry_{lang}"),
+                "office": visible(step.get(f"office_{lang}")) or visible(step.get("office_en")),
+                "what_to_carry": visible(step.get(f"what_to_carry_{lang}")),
             },
             "sources": [u["url"] for u in scheme.get("source_urls") or []],
             "verdict": result["verdict_text"],
-        })
+        }
+        if disbursement := visible((scheme.get("disbursement") or {}).get(f"summary_{lang}")
+                                   or (scheme.get("disbursement") or {}).get("summary_en")):
+            entry["disbursement"] = disbursement
+        payload.append({k: v for k, v in entry.items() if v not in (None, [], {})})
 
     return {"language": language, "schemes": payload}
 

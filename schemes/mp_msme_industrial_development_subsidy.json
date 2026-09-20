@@ -1,0 +1,144 @@
+{
+  "scheme_id": "mp_msme_industrial_development_subsidy",
+  "verified": false,
+  "name_en": "Industrial Development Subsidy (MP MSME Development Policy 2025, clause 7.1.1)",
+  "name_hi": "औद्योगिक विकास सब्सिडी (म.प्र. एमएसएमई विकास नीति 2025)",
+
+  "authority": {
+    "name_en": "Department of Micro, Small and Medium Enterprises, Government of Madhya Pradesh",
+    "level": "state",
+    "state": "Madhya Pradesh"
+  },
+
+  "what_you_get": {
+    "summary_en": "40% of eligible investment in plant and machinery, building and items defined in clause 17(vi), paid as industrial development subsidy to a new industrial unit, in 4 equal annual instalments. Building cost is counted up to 100% of the plant and machinery cost. Women, SC or ST entrepreneurs get an extra 2% per year for four years; SC or ST women entrepreneurs get 2.5% per year for four years.",
+    "summary_hi": "संयंत्र और मशीनरी, भवन तथा खंड 17(vi) में बताई गई वस्तुओं में किए गए पात्र निवेश का 40% नई औद्योगिक इकाई को औद्योगिक विकास सब्सिडी के रूप में, 4 बराबर वार्षिक किस्तों में। भवन की लागत संयंत्र और मशीनरी की लागत के 100% तक ही गिनी जाएगी। महिला, अनुसूचित जाति या अनुसूचित जनजाति के उद्यमियों को चार वर्ष तक हर वर्ष 2% अतिरिक्त; अनुसूचित जाति/जनजाति की महिला उद्यमियों को चार वर्ष तक हर वर्ष 2.5%।",
+    "source_page": 13
+  },
+
+  "disbursement": {
+    "summary_en": "4 equal annual instalments",
+    "source_page": 13
+  },
+
+  "eligibility": {
+    "criteria": [
+      {
+        "criterion_id": "new_unit",
+        "field": "has_existing_unit",
+        "test": "boolean",
+        "expected": false,
+        "label_en": "Must be a new industrial unit",
+        "label_hi": "नई औद्योगिक इकाई होनी चाहिए",
+        "source_page": 13
+      },
+      {
+        "criterion_id": "manufacturing_unit",
+        "field": "sector",
+        "test": "one_of",
+        "values": ["manufacturing"],
+        "label_en": "Must be a manufacturing unit",
+        "label_hi": "विनिर्माण (मैन्युफैक्चरिंग) इकाई होनी चाहिए",
+        "source_page": 13
+      },
+      {
+        "criterion_id": "investment_bracket",
+        "field": "investment_planned_inr",
+        "test": "range",
+        "min": 0,
+        "max": 100000000,
+        "label_en": "Investment in plant and machinery up to Rs 10 crore",
+        "label_hi": "संयंत्र और मशीनरी में निवेश 10 करोड़ रुपये तक",
+        "source_page": 13
+      },
+      {
+        "criterion_id": "state_mp",
+        "field": "state",
+        "test": "one_of",
+        "values": ["madhya_pradesh"],
+        "label_en": "Unit must be in Madhya Pradesh",
+        "label_hi": "इकाई मध्य प्रदेश में होनी चाहिए",
+        "source_page": 13
+      },
+      {
+        "criterion_id": "clause_7_6_exclusions",
+        "test": "manual",
+        "label_en": "Certain activities are excluded under clauses 7.6(ii), (iii) and (iv). Confirm at the District Trade and Industry Centre.",
+        "label_hi": "खंड 7.6(ii), (iii) और (iv) के अंतर्गत कुछ गतिविधियाँ शामिल नहीं हैं। जिला व्यापार एवं उद्योग केंद्र में पुष्टि करें।",
+        "source_page": 13
+      }
+    ]
+  },
+
+  "rate_modifiers": [
+    {
+      "modifier_id": "base",
+      "applies_when": "default",
+      "rate_en": "40% of eligible investment",
+      "source_page": 13
+    },
+    {
+      "modifier_id": "women_sc_st",
+      "applies_when": "caste_category in [sc, st] OR gender == female",
+      "rate_en": "additional 2% per year for four years",
+      "source_page": 13
+    },
+    {
+      "modifier_id": "sc_st_women",
+      "applies_when": "caste_category in [sc, st] AND gender == female",
+      "rate_en": "additional 2.5% per year for four years",
+      "source_page": 13
+    },
+    {
+      "modifier_id": "export_25_50",
+      "applies_when": "exports 25% to 50% of total sales",
+      "rate_en": "additional 2% per year for four years",
+      "source_page": 13
+    },
+    {
+      "modifier_id": "export_above_50",
+      "applies_when": "exports more than 50% of total sales",
+      "rate_en": "additional 3% per year for four years",
+      "source_page": 13
+    }
+  ],
+
+  "how_to_apply": [
+    {
+      "step_en": "NOT YET VERIFIED - not stated on page 13",
+      "step_hi": "NOT YET VERIFIED - अभी सत्यापित नहीं"
+    }
+  ],
+
+  "documents_required": [
+    {
+      "name_en": "NOT YET VERIFIED - not stated on page 13",
+      "name_hi": "NOT YET VERIFIED - अभी सत्यापित नहीं"
+    }
+  ],
+
+  "next_physical_step": {
+    "office_en": "District Trade and Industry Centre (Jila Vyapar evam Udyog Kendra) of your district - VERIFY THIS",
+    "office_hi": "अपने जिले का जिला व्यापार एवं उद्योग केंद्र - सत्यापित करें"
+  },
+
+  "source_urls": [
+    {
+      "url": "https://sws.invest.mp.gov.in/entity-locker-2/minio/files?path=mpidc/file-manager/MSME-Development-Policy-2025_Q89V6J.pdf",
+      "title": "MP MSME Development Policy 2025",
+      "retrieved_on": "2026-09-20",
+      "is_primary": true
+    }
+  ],
+
+  "source_document": "MP MSME Development Policy 2025, clause 7.1.1, printed page 13 (PDF page 27). Page numbers in this file are PRINTED page numbers; add 14 for the PDF page.",
+  "source_pages": [13],
+
+  "last_verified": {
+    "date": "2026-09-20",
+    "by": "Ayush",
+    "method": "read_source_document"
+  },
+
+  "verification_notes": "Clause 7.1.1 transcribed directly from printed page 13. NOT verified and NOT read from source: (a) clause 7.6(ii)(iii)(iv) exclusions, (b) clause 17(vi) definition of eligible items, (c) application procedure, (d) required documents, (e) the office to approach. Items marked NOT YET VERIFIED must be filled from the source before this file is trusted. Note the page offset: printed page 13 = PDF page 27."
+}
