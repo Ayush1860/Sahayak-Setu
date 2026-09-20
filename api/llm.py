@@ -26,7 +26,11 @@ from jsonio import ExtractionError, parse_json_object
 
 PROVIDER = os.environ.get("LLM_PROVIDER", "groq").lower()
 
-GROQ_MODEL = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")
+# Verified against console.groq.com/docs/models on 2026-09-20. Note that
+# llama-3.3-70b-versatile is listed as Enterprise, "Contact Sales" for rate
+# limits, so it is not usable on a free Developer key. The gpt-oss models are
+# the generally available production ones.
+GROQ_MODEL = os.environ.get("GROQ_MODEL", "openai/gpt-oss-120b")
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 
 BEDROCK_MODEL_ID = os.environ.get("BEDROCK_MODEL_ID", "")
@@ -65,14 +69,26 @@ def _complete_groq(system: str, messages: Sequence[dict[str, str]]) -> dict[str,
         if text and role in ("user", "assistant"):
             payload.append({"role": role, "content": text})
 
-    response = _groq().chat.completions.create(
-        model=GROQ_MODEL,
-        messages=payload,
+    kwargs = {
+        "model": GROQ_MODEL,
+        "messages": payload,
+        "temperature": 0,
+        "max_tokens": MAX_TOKENS,
+    }
+
+    try:
         # Guaranteed JSON. Cheaper and more reliable than asking nicely.
-        response_format={"type": "json_object"},
-        temperature=0,
-        max_tokens=MAX_TOKENS,
-    )
+        response = _groq().chat.completions.create(
+            **kwargs, response_format={"type": "json_object"}
+        )
+    except Exception as exc:
+        # Not every model on every plan accepts response_format. Losing the
+        # guarantee is survivable: jsonio already copes with fences and
+        # preamble. Losing every request is not.
+        if "response_format" not in str(exc) and "json" not in str(exc).lower():
+            raise
+        response = _groq().chat.completions.create(**kwargs)
+
     return parse_json_object(response.choices[0].message.content or "")
 
 
@@ -131,7 +147,12 @@ def complete(system: str, messages: Sequence[dict[str, str]]) -> dict[str, Any]:
 
 
 def describe() -> dict[str, str]:
-    """What is actually configured. Used by the handler for diagnostics."""
+    """What is configured. For logs and local debugging only.
+
+    Never put this in an HTTP response. Which model answers a question about
+    caste and income is not the user's business to know, and it tells an
+    attacker which prompt-injection techniques to reach for.
+    """
     return {
         "provider": PROVIDER,
         "model": GROQ_MODEL if PROVIDER == "groq" else BEDROCK_MODEL_ID,

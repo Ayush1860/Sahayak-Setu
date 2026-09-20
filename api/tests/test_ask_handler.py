@@ -183,3 +183,16 @@ def test_a_counter_failure_does_not_break_the_answer(monkeypatch):
 
     r = call({"conversation": [{"role": "user", "text": "hello"}]}, FakeLLM('{"profile": {}}'))
     assert r["statusCode"] == 200
+
+
+def test_the_response_never_names_the_provider_or_model(monkeypatch):
+    """describe() is for logs. A browser must not learn which model ran."""
+    import llm
+
+    monkeypatch.setattr(llm, "GROQ_MODEL", "some-secret-model-name")
+    monkeypatch.setattr(llm, "PROVIDER", "groq")
+
+    r = call({"conversation": [{"role": "user", "text": "hello"}]}, FakeLLM('{"profile": {}}'))
+    body = r["body"].lower()
+    for leak in ("groq", "bedrock", "llm", "provider", "some-secret-model-name", "anthropic"):
+        assert leak not in body, f"{leak!r} leaked to the browser"

@@ -26,7 +26,6 @@ import boto3
 import explainer
 import extractor
 import interview
-import llm
 import validator
 from matcher import match
 
@@ -176,5 +175,4 @@ def handler(event: dict[str, Any], context: Any = None) -> dict[str, Any]:
     answer["type"] = "answer"
     answer["language"] = language
     answer["request_id"] = str(uuid.uuid4())
-    answer["llm"] = llm.describe()
     return respond(200, answer)

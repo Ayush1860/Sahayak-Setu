@@ -21,8 +21,12 @@ Parameters:
     Description: Groq API key. Passed at deploy time, never committed.
   GroqModel:
     Type: String
-    Default: llama-3.3-70b-versatile
-    Description: Verify against https://console.groq.com/docs/models before deploying.
+    Default: openai/gpt-oss-120b
+    Description: >
+      Verified generally available on 2026-09-20. Do not use
+      llama-3.3-70b-versatile: it is Enterprise only and a Developer key
+      cannot call it. Re-check https://console.groq.com/docs/models before
+      deploying; Groq rotates ids.
   BedrockModelId:
     Type: String
     Description: >
