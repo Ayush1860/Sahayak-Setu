@@ -18,6 +18,7 @@ const COPY = {
     whatYouGet: "क्या मिलेगा",
     whyYouMayQualify: "आप क्यों पात्र हो सकते हैं",
     documents: "कौन से कागज़ ले जाएँ",
+    stillToConfirm: "कार्यालय में यह पूछें",
     nextStep: "अब क्या करें",
     source: "स्रोत",
     verifiedOn: "जाँच की तारीख",
@@ -40,6 +41,7 @@ const COPY = {
     whatYouGet: "What you get",
     whyYouMayQualify: "Why you may qualify",
     documents: "Documents to carry",
+    stillToConfirm: "Ask about this at the office",
     nextStep: "What to do next",
     source: "Source",
     verifiedOn: "Checked on",
@@ -73,6 +75,20 @@ function Card({ card, t }) {
           <ul>
             {card.documents.map((d, i) => (
               <li key={i}>{d}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Read from the matcher's pending list by the validator, not written
+          by the model. A criterion code could not settle appears here rather
+          than being quietly treated as met. */}
+      {card.still_to_confirm?.length > 0 && (
+        <div className="field confirm">
+          <span className="field-label">{t.stillToConfirm}</span>
+          <ul>
+            {card.still_to_confirm.map((item, i) => (
+              <li key={i}>{item}</li>
             ))}
           </ul>
         </div>

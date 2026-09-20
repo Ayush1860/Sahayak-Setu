@@ -232,6 +232,17 @@ h1 {
   padding: 0.8rem 0.95rem;
 }
 
+/* Not a warning, not an error. Something to ask about. */
+.confirm {
+  background: var(--warn-bg);
+  border: 1px solid var(--warn-line);
+  border-radius: 10px;
+  padding: 0.8rem 0.95rem;
+}
+
+.confirm .field-label { color: var(--warn-ink); }
+.confirm li { color: var(--warn-ink); }
+
 .sources {
   margin-top: 1.1rem;
   padding-top: 0.85rem;

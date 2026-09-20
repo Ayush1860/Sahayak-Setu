@@ -130,6 +130,15 @@ def validate(
             for u in scheme.get("source_urls") or []
         ]
         clean["last_verified"] = (scheme.get("last_verified") or {}).get("date")
+
+        # Things the code could not settle, taken from the matcher's pending
+        # list rather than from the model. A manual criterion lands here: the
+        # person is told to ask about it, and is never told it is satisfied.
+        clean["still_to_confirm"] = visible_list([
+            c.get(f"label_{lang}") or c.get("label_en")
+            for r in matched_results if r["scheme_id"] == scheme_id
+            for c in r.get("pending", [])
+        ])
         clean["source_pages"] = sorted({
             c.get("source_page")
             for r in matched_results if r["scheme_id"] == scheme_id

@@ -37,8 +37,8 @@ PORT = 8000
 RULES = [
     ("area_type", "rural", (r"गाँव", r"गांव", r"village", r"रूरल")),
     ("area_type", "urban", (r"शहर", r"city", r"town", r"नगर")),
-    ("has_existing_unit", False, (r"अभी (कोई )?नहीं", r"no business", r"not started",
-                                  r"शुरू करना चाहत", r"want to start")),
+    ("has_existing_unit", False, (r"अभी.{0,15}नहीं", r"कोई इकाई नहीं", r"no business",
+                                  r"not started", r"शुरू करना चाहत", r"want to start")),
     ("has_existing_unit", True, (r"पहले से", r"already run", r"i run", r"चल रही")),
     ("has_udyam_registration", True, (r"उद्यम", r"udyam")),
     ("caste_category", "sc", (r"\bsc\b", r"अनुसूचित जाति")),
@@ -48,8 +48,9 @@ RULES = [
     ("gender", "female", (r"चाहती", r"बनाती", r"करती", r"रहती", r"महिला", r"\bwoman\b")),
     ("gender", "male", (r"चाहता", r"बनाता", r"करता", r"रहता", r"पुरुष", r"\bman\b")),
     ("state", "Madhya Pradesh", (r"मध्य प्रदेश", r"madhya pradesh", r"\bmp\b")),
-    ("sector", "leaf plate making", (r"दोना", r"पत्तल", r"leaf plate")),
-    ("sector", "tailoring", (r"सिलाई", r"tailor", r"स्टिचिंग")),
+    ("sector", "manufacturing", (r"दोना", r"पत्तल", r"leaf plate", r"सिलाई",
+                                 r"tailor", r"बनात", r"making", r"manufactur")),
+    ("sector", "trading", (r"दुकान", r"shop", r"बेचत", r"resell")),
 ]
 
 DEVANAGARI_DIGITS = str.maketrans("०१२३४५६७८९", "0123456789")
@@ -116,17 +117,16 @@ def stub_complete(system: str, messages) -> dict:
 
 
 def load_demo_schemes() -> list[dict]:
-    """The repo corpus, with PLACEHOLDER cleared so cards render.
+    """The repo corpus, unmodified.
 
-    Nothing here is verified. The card text says PLACEHOLDER on every line
-    precisely so a screenshot of this can never be mistaken for real advice.
+    Placeholder schemes stay hidden, exactly as in production. Now that a
+    real transcribed scheme exists there is no reason to un-hide fabricated
+    content, and every good reason not to.
     """
-    schemes = []
-    for path in sorted((ROOT / "schemes").glob("*.json")):
-        scheme = json.loads(path.read_text(encoding="utf-8"))
-        scheme.pop("PLACEHOLDER", None)
-        schemes.append(scheme)
-    return schemes
+    return [
+        json.loads(path.read_text(encoding="utf-8"))
+        for path in sorted((ROOT / "schemes").glob("*.json"))
+    ]
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -163,7 +163,7 @@ if __name__ == "__main__":
 
     print("=" * 66)
     print("  DEMO HARNESS. The model is a keyword stub, not a language model.")
-    print("  Scheme content is PLACEHOLDER and is not real advice.")
+    print("  Scheme content is the real corpus; placeholders stay hidden.")
     print("  Matcher, validator and interview logic are the real ones.")
     print("=" * 66)
     print(f"  listening on http://localhost:{PORT}/ask")
