@@ -21,8 +21,8 @@ making dona-pattal, leaf plates, at home in a village in Madhya Pradesh is
 eligible for subsidised credit, capital subsidy and power-tariff concessions,
 and pays full rates because nobody told him.
 
-The source documents are hostile to access. For Example the MP MSME Development Policy
-2025 is a 56-page, 59 MB PDF exported from CorelDRAW with **zero extractable
+The source documents are hostile to access. For example, the MP MSME Development
+Policy 2025 is a 56-page, 59 MB PDF exported from CorelDRAW with **zero extractable
 text**. Every page is an image: not searchable, not selectable, invisible to
 a screen reader, useless to any software. It is in English, for a scheme
 aimed at rural micro-enterprise.

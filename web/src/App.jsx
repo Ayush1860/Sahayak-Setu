@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ask, transcribe } from "./api";
 import { micSupported, startRecording } from "./mic";
+import { applyTheme, readStoredTheme, storeTheme, systemPrefersDark } from "./theme";
 
 const COPY = {
   hi: {
@@ -39,6 +40,8 @@ const COPY = {
     speakHint: "बोलकर बताइए, या टाइप कीजिए",
     speechFailed: "आवाज़ समझ नहीं आई। कृपया टाइप कीजिए।",
     notEligible: "यह योजना अभी आप पर लागू नहीं होती",
+    toLight: "उजाला रंग",
+    toDark: "गहरा रंग",
   },
   en: {
     title: "Sahayak Setu",
@@ -76,6 +79,8 @@ const COPY = {
     speakHint: "Speak, or type instead",
     speechFailed: "We could not hear that. Please type instead.",
     notEligible: "This scheme does not apply to you right now",
+    toLight: "Switch to light",
+    toDark: "Switch to dark",
   },
 };
 
@@ -87,6 +92,28 @@ function readableCondition(condition) {
   if (!condition) return null;
   if (/[[\]]|==|\sOR\s|\sAND\s/.test(condition)) return null;
   return condition;
+}
+
+function SunIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+      <circle cx="12" cy="12" r="4.2" fill="currentColor" />
+      <g stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+        <path d="M12 2.6v2.2M12 19.2v2.2M4.2 12H2M22 12h-2.2M5.6 5.6l1.6 1.6M16.8 16.8l1.6 1.6M18.4 5.6l-1.6 1.6M7.2 16.8l-1.6 1.6" />
+      </g>
+    </svg>
+  );
+}
+
+function MoonIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+      <path
+        d="M20.5 14.3A8.5 8.5 0 0 1 9.7 3.5a8.5 8.5 0 1 0 10.8 10.8Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
 }
 
 function MicIcon() {
@@ -257,6 +284,7 @@ function Answer({ question, t, onAnswer, disabled }) {
 
 export default function App() {
   const [language, setLanguage] = useState("hi");
+  const [theme, setTheme] = useState(readStoredTheme);
   const [name, setName] = useState("");
   const [nameDraft, setNameDraft] = useState("");
   const [turns, setTurns] = useState([]);
@@ -274,6 +302,12 @@ export default function App() {
   const canSpeak = micSupported();
 
   const t = COPY[language];
+  const isDark = theme === "dark" || (theme === null && systemPrefersDark());
+
+  useEffect(() => {
+    applyTheme(theme);
+    storeTheme(theme);
+  }, [theme]);
 
   useEffect(() => {
     bottom.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -377,9 +411,21 @@ export default function App() {
       <img className="logo" src="/logo-mark.webp" alt="" width="160" height="86" />
       <h1>{t.title}</h1>
       <p className="tagline">{t.tagline}</p>
-      <div className="lang-toggle" role="group" aria-label="Language">
-        <button onClick={() => setLanguage("hi")} aria-pressed={language === "hi"}>हिंदी</button>
-        <button onClick={() => setLanguage("en")} aria-pressed={language === "en"}>English</button>
+      <div className="header-controls">
+        <div className="lang-toggle" role="group" aria-label="Language">
+          <button onClick={() => setLanguage("hi")} aria-pressed={language === "hi"}>हिंदी</button>
+          <button onClick={() => setLanguage("en")} aria-pressed={language === "en"}>English</button>
+        </div>
+        {/* Until this is touched the page follows the device. The icon shows
+            what tapping will give you, not what you already have. */}
+        <button
+          className="theme-toggle"
+          onClick={() => setTheme(isDark ? "light" : "dark")}
+          aria-label={isDark ? t.toLight : t.toDark}
+          title={isDark ? t.toLight : t.toDark}
+        >
+          {isDark ? <SunIcon /> : <MoonIcon />}
+        </button>
       </div>
     </header>
   );
