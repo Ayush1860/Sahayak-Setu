@@ -1,0 +1,37 @@
+provider=groq model=openai/gpt-oss-120b
+======================================================================
+
+--- extractor, hindi
+input: मैं मध्य प्रदेश के गाँव में दोना पत्तल बनाती हूँ, उम्र 32, अभी कोई इकाई नहीं है
+language: hi
+profile: {"age": 32, "area_type": "rural", "has_existing_unit": false, "state": "madhya_pradesh", "sector": "manufacturing"}
+missing: []
+
+--- extractor, english
+input: I make leaf plates at home in my village in Madhya Pradesh. I am 32 and have no unit yet.
+language: en
+profile: {"age": 32, "area_type": "rural", "has_existing_unit": false, "state": "madhya_pradesh", "sector": "manufacturing"}
+missing: []
+
+--- explainer, hi
+refused: False
+summary: आपको औद्योगिक विकास सब्सिडी के लिए संभावित पात्रता मिली है। आपके द्वारा दी गई जानकारी के आधार पर कुछ शर्तें पूरी होती हैं। कृपया आगे की पुष्टि के लिए संबंधित कार्यालय जाएँ।
+  name: औद्योगिक विकास सब्सिडी (म.प्र. एमएसएमई विकास नीति 2025)
+  what_you_get: संयंत्र, मशीनरी और भवन में किए गए पात्र निवेश का 40% सब्सिडी के रूप में चार बराबर वार्षिक किस्तों में मिलेगा। भवन की लागत संयंत्र और मशीनरी की लागत के 100% तक गिनी जाएगी। महिला, अनुसूचित जाति या अनुसू
+  why: आपकी नई औद्योगिक इकाई है, वह विनिर्माण इकाई है, और वह मध्य प्रदेश में स्थित है।
+  rates: ['40% of eligible investment', 'additional 2% per year for four years', 'additional 2.5% per year for four years']
+  confirm: ['संयंत्र और मशीनरी में निवेश 10 करोड़ रुपये तक', 'खंड 7.6(ii), (iii) और (iv) के अंतर्गत कुछ गतिविधियाँ शामिल नहीं हैं। जिला व्यापार एवं उद्योग केंद्र में पुष्टि करें।']
+dropped: []
+
+--- explainer, en
+refused: False
+summary: We found one scheme that you may qualify for. It supports new manufacturing units in Madhya Pradesh. You should check the details at the office.
+  name: Industrial Development Subsidy (MP MSME Development Policy 2025, clause 7.1.1)
+  what_you_get: You may be able to get 40% of eligible investment. You may be able to get an additional 2% per year for four years. You may be able to get an additional 2.5% per year for four years. The subsidy may b
+  why: You may qualify because you are setting up a new industrial unit. You may qualify because it is a manufacturing unit. You may qualify because the unit will be in Madhya Pradesh.
+  rates: ['40% of eligible investment', 'additional 2% per year for four years', 'additional 2.5% per year for four years']
+  confirm: ['Investment in plant and machinery up to Rs 10 crore', 'Certain activities are excluded under clauses 7.6(ii), (iii) and (iv). Confirm at the District Trade and Industry Centre.']
+dropped: []
+
+======================================================================
+no problems found

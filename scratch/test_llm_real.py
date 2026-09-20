@@ -25,6 +25,25 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "api"))
 
+
+def load_dotenv() -> None:
+    """Read .env before importing llm, which reads os.environ at import time.
+
+    Keeps the key out of the shell history and out of git; .env is ignored.
+    """
+    path = ROOT / ".env"
+    if not path.exists():
+        return
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
+
+
+load_dotenv()
+
 import ask_handler  # noqa: E402
 import explainer  # noqa: E402
 import extractor  # noqa: E402
