@@ -89,6 +89,21 @@ function readableCondition(condition) {
   return condition;
 }
 
+function MicIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
+      <path
+        d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z"
+        fill="currentColor"
+      />
+      <path
+        d="M19 11a1 1 0 1 0-2 0 5 5 0 0 1-10 0 1 1 0 1 0-2 0 7 7 0 0 0 6 6.93V20H8a1 1 0 1 0 0 2h8a1 1 0 1 0 0-2h-3v-2.07A7 7 0 0 0 19 11Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
 function Card({ card, t }) {
   return (
     <article className="card">
@@ -267,6 +282,8 @@ export default function App() {
   async function submit(conversation, nextAnswers, nextAsked) {
     setBusy(true);
     setFailed(false);
+    // A failed recording is about the last attempt, not this one.
+    setSpeechError(false);
     setQuestion(null);
     try {
       const result = await ask(conversation, nextAsked, nextAnswers);
@@ -342,6 +359,7 @@ export default function App() {
   }
 
   function restart() {
+    setSpeechError(false);
     setTurns([]);
     setAsked([]);
     setAnswers({});
@@ -469,7 +487,10 @@ export default function App() {
           <div className="composer-inner">
             <textarea
               value={draft}
-              onChange={(e) => setDraft(e.target.value)}
+              onChange={(e) => {
+                setDraft(e.target.value);
+                if (speechError) setSpeechError(false);
+              }}
               onKeyDown={(e) => {
                 if (e.key !== "Enter" || e.shiftKey) return;
                 if (e.nativeEvent?.isComposing || e.keyCode === 229) return;
@@ -490,7 +511,7 @@ export default function App() {
                 onPointerCancel={finishSpeaking}
                 disabled={busy && !recording}
               >
-                {recording ? "..." : t.speak}
+                <MicIcon />
               </button>
             ) : (
               <button className="send" onClick={() => describe(draft)} disabled={busy || !draft.trim()}>

@@ -478,10 +478,15 @@ button:focus-visible {
 /* ------------------------------------------------------------ speaking */
 
 .send.mic {
-  padding: 0 1.2rem;
+  width: var(--tap);
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: var(--accent);
   touch-action: none;          /* hold to speak, do not scroll the page */
   user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .send.mic.recording {
