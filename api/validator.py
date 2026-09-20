@@ -18,6 +18,7 @@ from __future__ import annotations
 import re
 from typing import Any, Sequence
 
+import rates
 from redact import visible, visible_list
 
 URL_PATTERN = re.compile(r"https?://[^\s)\]\"'<>]+")
@@ -78,6 +79,7 @@ def validate(
     matched_results: Sequence[dict],
     schemes: Sequence[dict],
     language: str = "en",
+    profile: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Strip everything unsupported. Return a safe response, or the refusal.
 
@@ -134,6 +136,11 @@ def validate(
         # Things the code could not settle, taken from the matcher's pending
         # list rather than from the model. A manual criterion lands here: the
         # person is told to ask about it, and is never told it is satisfied.
+        # Rate lines, selected by Python, copied verbatim, never combined.
+        selected = rates.select(scheme, profile or {}, lang)
+        clean["rates"] = selected["applies"]
+        clean["rates_possible"] = selected["possible"]
+
         clean["still_to_confirm"] = visible_list([
             c.get(f"label_{lang}") or c.get("label_en")
             for r in matched_results if r["scheme_id"] == scheme_id

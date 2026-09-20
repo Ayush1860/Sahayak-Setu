@@ -232,6 +232,22 @@ h1 {
   padding: 0.8rem 0.95rem;
 }
 
+/* The rate lines. Each stands alone; they are never summed. */
+.rates ul { list-style: none; padding-left: 0; }
+
+.rates li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 1.02rem;
+}
+
+.rates li:last-child { border-bottom: 0; }
+
+.cite {
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+}
+
 /* Not a warning, not an error. Something to ask about. */
 .confirm {
   background: var(--warn-bg);

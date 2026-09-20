@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any, Callable, Sequence
 
 import llm
+import rates
 from redact import visible, visible_list
 
 PROMPT_PATH = Path(__file__).parent / "prompts" / "explainer_system.txt"
@@ -21,7 +22,8 @@ def load_system_prompt() -> str:
     return PROMPT_PATH.read_text(encoding="utf-8")
 
 
-def build_input(results: Sequence[dict], schemes: Sequence[dict], language: str) -> dict[str, Any]:
+def build_input(results: Sequence[dict], schemes: Sequence[dict], language: str,
+                profile: dict[str, Any] | None = None) -> dict[str, Any]:
     """Exactly what the model is allowed to see. Nothing else from the corpus.
 
     Building this explicitly, rather than passing whole scheme dicts, is what
@@ -57,6 +59,9 @@ def build_input(results: Sequence[dict], schemes: Sequence[dict], language: str)
             "sources": [u["url"] for u in scheme.get("source_urls") or []],
             "verdict": result["verdict_text"],
         }
+        selected = rates.select(scheme, profile or {}, lang)
+        if selected["applies"]:
+            entry["rate_lines"] = rates.as_strings(selected["applies"])
         if disbursement := visible((scheme.get("disbursement") or {}).get(f"summary_{lang}")
                                    or (scheme.get("disbursement") or {}).get("summary_en")):
             entry["disbursement"] = disbursement
@@ -70,9 +75,10 @@ def explain(
     schemes: Sequence[dict],
     language: str = "en",
     complete: Callable[..., dict[str, Any]] | None = None,
+    profile: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Return the model's draft. Not safe to show until validator.py has run."""
     complete = complete or llm.complete
-    payload = build_input(results, schemes, language)
+    payload = build_input(results, schemes, language, profile)
     message = [{"role": "user", "text": json.dumps(payload, ensure_ascii=False)}]
     return complete(load_system_prompt(), message) or {"summary": "", "cards": [], "closing": ""}

@@ -168,8 +168,8 @@ def handler(event: dict[str, Any], context: Any = None) -> dict[str, Any]:
         count("refused")
         answer = validator.validate({}, [], schemes, language)
     else:
-        draft = explainer.explain(shortlist, schemes, language)
-        answer = validator.validate(draft, shortlist, schemes, language)
+        draft = explainer.explain(shortlist, schemes, language, profile=profile)
+        answer = validator.validate(draft, shortlist, schemes, language, profile)
         count("refused" if answer["refused"] else "answered",
               [c["scheme_id"] for c in answer["cards"]])
 

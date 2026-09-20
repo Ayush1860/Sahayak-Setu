@@ -340,8 +340,68 @@
             "$ref": "#/$defs/source_page"
           },
           "when": {
-            "description": "Machine-evaluable selector, added in Task B. Absent means the modifier is informational only.",
-            "type": "object"
+            "description": "Machine-evaluable selector. Absent means informational: the source states it but the profile can never confirm it, so it is shown as 'may also apply'.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "enum": [
+                  "always",
+                  "all",
+                  "any"
+                ]
+              },
+              "conditions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "field",
+                    "test"
+                  ],
+                  "properties": {
+                    "field": {
+                      "$ref": "#/$defs/profile_field"
+                    },
+                    "test": {
+                      "enum": [
+                        "range",
+                        "one_of",
+                        "none_of",
+                        "boolean"
+                      ]
+                    },
+                    "min": {
+                      "type": "number"
+                    },
+                    "max": {
+                      "type": "number"
+                    },
+                    "values": {
+                      "type": "array",
+                      "items": {
+                        "type": [
+                          "string",
+                          "number"
+                        ]
+                      }
+                    },
+                    "expected": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "supersedes": {
+            "description": "modifier_id this one replaces when both would apply. Set by the person who transcribed the scheme, never inferred.",
+            "type": "string",
+            "pattern": "^[a-z0-9]+(_[a-z0-9]+)*$"
           }
         }
       }

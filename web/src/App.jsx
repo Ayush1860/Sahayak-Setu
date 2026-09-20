@@ -16,6 +16,8 @@ const COPY = {
       "मेरी उम्र 28 है और मैं शहर में रहता हूँ",
     ],
     whatYouGet: "क्या मिलेगा",
+    rates: "आपके लिए लागू दरें",
+    ratesPossible: "ये भी लागू हो सकती हैं",
     whyYouMayQualify: "आप क्यों पात्र हो सकते हैं",
     documents: "कौन से कागज़ ले जाएँ",
     stillToConfirm: "कार्यालय में यह पूछें",
@@ -39,6 +41,8 @@ const COPY = {
       "I am 28 and I live in the city",
     ],
     whatYouGet: "What you get",
+    rates: "Rates that apply to you",
+    ratesPossible: "These may also apply",
     whyYouMayQualify: "Why you may qualify",
     documents: "Documents to carry",
     stillToConfirm: "Ask about this at the office",
@@ -59,6 +63,37 @@ function Card({ card, t }) {
         <div className="field">
           <span className="field-label">{t.whatYouGet}</span>
           <p>{card.what_you_get}</p>
+        </div>
+      )}
+
+      {/* Selected by Python from the profile, copied word for word from the
+          source. Deliberately shown as separate lines: the document states a
+          base rate and separate additions, and no total. Adding them up would
+          be our invention, not the policy's. */}
+      {card.rates?.length > 0 && (
+        <div className="field rates">
+          <span className="field-label">{t.rates}</span>
+          <ul>
+            {card.rates.map((r) => (
+              <li key={r.modifier_id}>
+                {r.rate}
+                {r.source_page && <span className="cite"> ({t.page} {r.source_page})</span>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {card.rates_possible?.length > 0 && (
+        <div className="field">
+          <span className="field-label">{t.ratesPossible}</span>
+          <ul>
+            {card.rates_possible.map((r) => (
+              <li key={r.modifier_id}>
+                {r.rate} <span className="cite">- {r.condition}</span>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 
