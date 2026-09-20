@@ -19,3 +19,9 @@ web/build/
 samconfig.toml
 web/node_modules/
 web/dist/
+
+# AI agent rules files
+CLAUDE.md
+AGENTS.md
+.cursor/
+.kiro/
