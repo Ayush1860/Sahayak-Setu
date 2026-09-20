@@ -107,3 +107,45 @@ def test_full_interview_terminates():
         raise AssertionError("interview did not terminate")
 
     assert len(asked) <= MAX_QUESTIONS
+
+
+# --------------------------------------------- tapping instead of typing
+
+def test_a_range_field_offers_buckets_not_a_text_box():
+    q = next_question({}, [scheme("a", [crit(criterion_id="age", test="range", min=18, max=45)])])
+    assert q["input_type"] == "range"
+    assert all("min" in o["value"] and "max" in o["value"] for o in q["options"])
+
+
+def test_a_vocabulary_field_offers_choices():
+    q = next_question({}, [scheme("a", [RURAL])])
+    assert q["input_type"] == "choice"
+    assert {o["value"] for o in q["options"]} == {"rural", "urban"}
+
+
+def test_a_boolean_field_offers_two_buttons():
+    q = next_question({}, [scheme("a", [NO_UNIT])])
+    assert q["input_type"] == "choice"
+    assert {o["value"] for o in q["options"]} == {True, False}
+
+
+def test_state_is_a_dropdown_covering_madhya_pradesh():
+    state = crit(criterion_id="st", field="state", test="one_of",
+                 values=["madhya_pradesh"], source_page=1)
+    q = next_question({}, [scheme("a", [state])])
+    assert q["input_type"] == "select"
+    assert "madhya_pradesh" in {o["value"] for o in q["options"]}
+    assert len(q["options"]) > 20
+
+
+def test_every_option_has_a_label_in_the_asked_language():
+    q = next_question({}, [scheme("a", [RURAL])], language="hi")
+    for option in q["options"]:
+        assert option["label"]
+        assert any("\u0900" <= ch <= "\u097F" for ch in option["label"])
+
+
+def test_labels_are_plain_words_not_field_values():
+    q = next_question({}, [scheme("a", [RURAL])], language="en")
+    labels = {o["label"] for o in q["options"]}
+    assert "rural" not in labels

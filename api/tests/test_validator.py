@@ -175,3 +175,40 @@ def test_malformed_card_is_dropped_not_crashed():
 def test_empty_model_output_refuses():
     out = validate({}, MATCHED, [REAL_SCHEME])
     assert out["refused"] is True
+
+
+# ------------------------------------------- a refusal that says why
+
+EXCLUDED = [{
+    "scheme_id": "real_scheme",
+    "name_en": "Real Scheme",
+    "name_hi": "असली योजना",
+    "verdict": "excluded",
+    "reason": "This requirement is not met: Must be a new industrial unit",
+    "failed": [{"criterion_id": "new_unit", "source_page": 13,
+                "reason": "This requirement is not met: Must be a new industrial unit"}],
+    "reasons_met": [], "pending": [],
+}]
+
+
+def test_a_refusal_names_the_requirement_that_failed():
+    out = validate({}, [], [REAL_SCHEME], "en", excluded=EXCLUDED)
+    assert out["refused"] is True
+    assert out["not_eligible"][0]["name"] == "Real Scheme"
+    assert "new industrial unit" in out["not_eligible"][0]["reason"]
+
+
+def test_the_failed_requirement_carries_its_page():
+    out = validate({}, [], [REAL_SCHEME], "en", excluded=EXCLUDED)
+    assert out["not_eligible"][0]["source_pages"] == [13]
+
+
+def test_a_refusal_with_nothing_excluded_still_works():
+    out = validate({}, [], [REAL_SCHEME], "en")
+    assert out["refused"] is True
+    assert out["not_eligible"] == []
+
+
+def test_the_refusal_still_never_claims_eligibility():
+    out = validate({}, [], [REAL_SCHEME], "en", excluded=EXCLUDED)
+    assert "you qualify" not in out["summary"].lower()

@@ -19,7 +19,8 @@ from __future__ import annotations
 from typing import Any, Sequence
 
 from extractor import REQUIRED_FIELDS
-from fields import PROFILE_FIELDS
+from fields import (BOOLEAN_LABELS, CHOICE_LABELS, PROFILE_FIELDS, RANGES,
+                    STATES, VOCABULARIES)
 from matcher import fields_that_would_help, match
 
 # After this many questions, answer with what is known. An interview that
@@ -125,6 +126,45 @@ def _candidates(
     return ranked
 
 
+def options_for(field: str, language: str) -> tuple[str, list[dict]]:
+    """What the person taps instead of typing.
+
+    Returns (input_type, options). Typing is the fallback, not the default:
+    a tap cannot be misspelled, cannot be misread, and does not need a
+    keyboard someone may not have in their own script.
+    """
+    if field in RANGES:
+        return "range", [
+            {
+                "value": {"min": b["min"], "max": b["max"]},
+                "label": b[f"label_{language}"] if f"label_{language}" in b else b["label_en"],
+            }
+            for b in RANGES[field]
+        ]
+
+    if field in BOOLEAN_LABELS:
+        return "choice", [
+            {"value": value, "label": labels.get(language, labels["en"])}
+            for value, labels in BOOLEAN_LABELS[field].items()
+        ]
+
+    if field == "state":
+        return "select", [
+            {"value": slug, "label": hi if language == "hi" else en}
+            for slug, en, hi in STATES
+        ]
+
+    if field in CHOICE_LABELS:
+        labels = CHOICE_LABELS[field]
+        return "choice", [
+            {"value": value, "label": labels[value].get(language, labels[value]["en"])}
+            for value in VOCABULARIES.get(field, tuple(labels))
+            if value in labels
+        ]
+
+    return "text", []
+
+
 def next_question(
     profile: dict[str, Any],
     schemes: Sequence[dict],
@@ -144,9 +184,12 @@ def next_question(
         return None
 
     field = candidates[0]
+    input_type, options = options_for(field, language)
     return {
         "field": field,
         "text": QUESTIONS[field].get(language, QUESTIONS[field]["en"]),
+        "input_type": input_type,
+        "options": options,
         "language": language,
         "asked_count": len(asked) + 1,
         "unblocks": sum(

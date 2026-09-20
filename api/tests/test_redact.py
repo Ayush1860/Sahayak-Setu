@@ -93,3 +93,41 @@ def test_what_you_get_survives_intact():
     out = match({"has_existing_unit": False}, [REAL])
     payload = explainer.build_input(out["likely"], [REAL], "en")
     assert "40%" in payload["schemes"][0]["what_you_get"]
+
+
+# --------------------------------------- an answer survives a dead provider
+
+def test_a_dead_provider_still_produces_a_card():
+    """The matcher found a real scheme. A wording failure must not turn that
+    into 'we found nothing'."""
+    out = match({"has_existing_unit": False, "sector": "manufacturing",
+                 "state": "madhya_pradesh"}, [REAL])
+    shortlist = out["matched"] + out["likely"]
+
+    draft, used_fallback = explainer.explain_or_fallback(
+        shortlist, [REAL], "en", complete=lambda system, messages: {})
+
+    assert used_fallback is True
+    assert [c["scheme_id"] for c in draft["cards"]] == ["mp_msme_industrial_development_subsidy"]
+    assert "40%" in draft["cards"][0]["what_you_get"]
+
+
+def test_the_fallback_card_carries_no_markers():
+    out = match({"has_existing_unit": False}, [REAL])
+    draft, _ = explainer.explain_or_fallback(
+        out["likely"], [REAL], "hi", complete=lambda system, messages: {})
+    blob = json.dumps(draft, ensure_ascii=False).upper()
+    assert "NOT YET VERIFIED" not in blob and "VERIFY THIS" not in blob
+
+
+def test_a_working_provider_is_preferred():
+    out = match({"has_existing_unit": False}, [REAL])
+    good = {"summary": "s", "closing": "c", "cards": [{
+        "scheme_id": "mp_msme_industrial_development_subsidy",
+        "name": "n", "what_you_get": "w", "why_you_may_qualify": "y",
+        "documents": [], "next_step": "o",
+    }]}
+    draft, used_fallback = explainer.explain_or_fallback(
+        out["likely"], [REAL], "en", complete=lambda system, messages: good)
+    assert used_fallback is False
+    assert draft["cards"][0]["what_you_get"] == "w"

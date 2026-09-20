@@ -279,3 +279,35 @@ def test_the_real_placeholder_scheme_file_runs_through_the_matcher():
     out = match({"age": 30}, [data], include_placeholders=True)
     assert len(out["likely"]) == 1
     assert out["likely"][0]["reasons_met"][0]["criterion_id"] == "age_range"
+
+
+# ------------------------------------------- buckets, not typed numbers
+
+BUCKET_CRIT = crit(criterion_id="age", test="range", min=18, max=45)
+
+
+def test_a_bucket_entirely_inside_the_range_passes():
+    assert evaluate_criterion(BUCKET_CRIT, {"age": {"min": 26, "max": 35}}) is Outcome.PASS
+
+
+def test_a_bucket_entirely_outside_the_range_fails():
+    assert evaluate_criterion(BUCKET_CRIT, {"age": {"min": 61, "max": 100}}) is Outcome.FAIL
+
+
+def test_a_bucket_straddling_the_boundary_is_unknown_not_a_guess():
+    """36-45 against a rule of 18-40 does not say whether they qualify."""
+    c = crit(criterion_id="age", test="range", min=18, max=40)
+    assert evaluate_criterion(c, {"age": {"min": 36, "max": 45}}) is Outcome.UNKNOWN
+
+
+def test_a_bucket_touching_the_edge_passes():
+    assert evaluate_criterion(BUCKET_CRIT, {"age": {"min": 18, "max": 45}}) is Outcome.PASS
+
+
+def test_a_malformed_bucket_is_unknown():
+    assert evaluate_criterion(BUCKET_CRIT, {"age": {"min": "x", "max": 35}}) is Outcome.UNKNOWN
+
+
+def test_plain_numbers_still_work():
+    assert evaluate_criterion(BUCKET_CRIT, {"age": 30}) is Outcome.PASS
+    assert evaluate_criterion(BUCKET_CRIT, {"age": 60}) is Outcome.FAIL

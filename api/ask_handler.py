@@ -149,6 +149,13 @@ def handler(event: dict[str, Any], context: Any = None) -> dict[str, Any]:
     extracted = extractor.extract(conversation)
     profile, language = extracted["profile"], extracted["language"]
 
+    # Answers the person tapped rather than typed. They go through the same
+    # cleaning as anything the model returns, then win over it: an explicit
+    # choice is better evidence than an inference from prose. This also means
+    # a provider outage still leaves a working interview.
+    chosen = extractor.clean_profile(body.get("answers") or {})
+    profile.update(chosen)
+
     question = interview.next_question(profile, schemes, asked=asked, language=language)
     if question is not None:
         count("question_asked")
@@ -156,6 +163,9 @@ def handler(event: dict[str, Any], context: Any = None) -> dict[str, Any]:
             "type": "question",
             "question": question["text"],
             "field": question["field"],
+            # What the person taps instead of typing.
+            "input_type": question["input_type"],
+            "options": question["options"],
             "asked": asked + [question["field"]],
             "language": language,
         })
@@ -165,10 +175,14 @@ def handler(event: dict[str, Any], context: Any = None) -> dict[str, Any]:
 
     if not shortlist:
         count("refused")
-        answer = validator.validate({}, [], schemes, language)
+        answer = validator.validate({}, [], schemes, language, profile,
+                                    excluded=results["excluded"])
     else:
-        draft = explainer.explain(shortlist, schemes, language, profile=profile)
+        draft, used_fallback = explainer.explain_or_fallback(
+            shortlist, schemes, language, profile=profile)
         answer = validator.validate(draft, shortlist, schemes, language, profile)
+        if used_fallback:
+            count("explainer_fallback")
         count("refused" if answer["refused"] else "answered",
               [c["scheme_id"] for c in answer["cards"]])
 

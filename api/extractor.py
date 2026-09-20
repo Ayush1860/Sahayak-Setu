@@ -70,6 +70,18 @@ def clean_value(field: str, value: Any) -> Any | None:
         return value if isinstance(value, bool) else None
 
     if expected is int or expected == (int, float):
+        # A bucket chosen from a list, e.g. {"min": 26, "max": 35}.
+        if isinstance(value, dict):
+            lo, hi = value.get("min"), value.get("max")
+            if not isinstance(lo, (int, float)) or not isinstance(hi, (int, float)):
+                return None
+            if isinstance(lo, bool) or isinstance(hi, bool) or lo > hi:
+                return None
+            bound_lo, bound_hi = NUMERIC_BOUNDS.get(field, (float("-inf"), float("inf")))
+            if hi < bound_lo or lo > bound_hi:
+                return None
+            return {"min": lo, "max": hi}
+
         # bool is an int in Python, and True must never become age 1.
         if isinstance(value, bool):
             return None

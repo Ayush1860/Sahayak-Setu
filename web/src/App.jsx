@@ -5,6 +5,11 @@ const COPY = {
   hi: {
     title: "सहायक सेतु",
     tagline: "अपना काम बताइए। हम बताएँगे कौन सी सरकारी योजना आपके लिए हो सकती है।",
+    namePrompt: "आपका नाम क्या है?",
+    namePlaceholder: "जैसे: सीता",
+    nameNote: "नाम सिर्फ़ आपके फ़ोन पर रहता है। हम इसे कहीं नहीं भेजते।",
+    start: "आगे बढ़ें",
+    greeting: (name) => `नमस्ते ${name}। अपना काम बताइए।`,
     placeholder: "जैसे: मैं गाँव में दोना पत्तल बनाता हूँ",
     send: "भेजें",
     thinking: "देख रहे हैं...",
@@ -13,8 +18,10 @@ const COPY = {
     examples: [
       "मैं गाँव में दोना पत्तल बनाता हूँ",
       "मैं सिलाई का काम शुरू करना चाहती हूँ",
-      "मेरी उम्र 28 है और मैं शहर में रहता हूँ",
+      "मैं खेती के साथ छोटा काम शुरू करना चाहता हूँ",
     ],
+    choose: "चुनिए",
+    skip: "पता नहीं",
     whatYouGet: "क्या मिलेगा",
     rates: "आपके लिए लागू दरें",
     ratesPossible: "ये भी लागू हो सकती हैं",
@@ -26,10 +33,16 @@ const COPY = {
     verifiedOn: "जाँच की तारीख",
     page: "पृष्ठ",
     error: "अभी जवाब नहीं मिल पाया। कृपया दोबारा कोशिश करें।",
+    notEligible: "यह योजना अभी आप पर लागू नहीं होती",
   },
   en: {
     title: "Sahayak Setu",
     tagline: "Tell us about your work. We will tell you which government schemes may be for you.",
+    namePrompt: "What is your name?",
+    namePlaceholder: "For example: Sita",
+    nameNote: "Your name stays on your phone. We never send it anywhere.",
+    start: "Continue",
+    greeting: (name) => `Hello ${name}. Tell us about your work.`,
     placeholder: "For example: I make leaf plates in my village",
     send: "Send",
     thinking: "Looking...",
@@ -38,8 +51,10 @@ const COPY = {
     examples: [
       "I make leaf plates at home in my village",
       "I want to start a tailoring business",
-      "I am 28 and I live in the city",
+      "I farm and want to start a small business too",
     ],
+    choose: "Choose one",
+    skip: "I do not know",
     whatYouGet: "What you get",
     rates: "Rates that apply to you",
     ratesPossible: "These may also apply",
@@ -51,8 +66,19 @@ const COPY = {
     verifiedOn: "Checked on",
     page: "Page",
     error: "We could not get an answer. Please try again.",
+    notEligible: "This scheme does not apply to you right now",
   },
 };
+
+/* applies_when is transcribed verbatim, and for some modifiers that means
+   machine syntax like "caste_category in [sc, st] OR gender == female".
+   True, but not a sentence to put in front of a person. Prose conditions
+   such as "exports 25% to 50% of total sales" are shown as written. */
+function readableCondition(condition) {
+  if (!condition) return null;
+  if (/[[\]]|==|\sOR\s|\sAND\s/.test(condition)) return null;
+  return condition;
+}
 
 function Card({ card, t }) {
   return (
@@ -67,9 +93,8 @@ function Card({ card, t }) {
       )}
 
       {/* Selected by Python from the profile, copied word for word from the
-          source. Deliberately shown as separate lines: the document states a
-          base rate and separate additions, and no total. Adding them up would
-          be our invention, not the policy's. */}
+          source. Shown as separate lines because the document states a base
+          rate and separate additions, and no total. */}
       {card.rates?.length > 0 && (
         <div className="field rates">
           <span className="field-label">{t.rates}</span>
@@ -90,7 +115,10 @@ function Card({ card, t }) {
           <ul>
             {card.rates_possible.map((r) => (
               <li key={r.modifier_id}>
-                {r.rate} <span className="cite">- {r.condition}</span>
+                {r.rate}
+                {readableCondition(r.condition) && (
+                  <span className="cite"> - {readableCondition(r.condition)}</span>
+                )}
               </li>
             ))}
           </ul>
@@ -108,23 +136,16 @@ function Card({ card, t }) {
         <div className="field">
           <span className="field-label">{t.documents}</span>
           <ul>
-            {card.documents.map((d, i) => (
-              <li key={i}>{d}</li>
-            ))}
+            {card.documents.map((d, i) => <li key={i}>{d}</li>)}
           </ul>
         </div>
       )}
 
-      {/* Read from the matcher's pending list by the validator, not written
-          by the model. A criterion code could not settle appears here rather
-          than being quietly treated as met. */}
       {card.still_to_confirm?.length > 0 && (
         <div className="field confirm">
           <span className="field-label">{t.stillToConfirm}</span>
           <ul>
-            {card.still_to_confirm.map((item, i) => (
-              <li key={i}>{item}</li>
-            ))}
+            {card.still_to_confirm.map((item, i) => <li key={i}>{item}</li>)}
           </ul>
         </div>
       )}
@@ -136,8 +157,6 @@ function Card({ card, t }) {
         </div>
       )}
 
-      {/* Citations are attached by the server from the verified corpus, never
-          written by the model. If this block is empty, something is wrong. */}
       {card.sources?.length > 0 && (
         <div className="sources">
           {card.sources.map((s, i) => (
@@ -151,8 +170,7 @@ function Card({ card, t }) {
           {card.last_verified && (
             <span className="verified">
               {t.verifiedOn}: {card.last_verified}
-              {card.source_pages?.length > 0 &&
-                ` · ${t.page} ${card.source_pages.join(", ")}`}
+              {card.source_pages?.length > 0 && ` · ${t.page} ${card.source_pages.join(", ")}`}
             </span>
           )}
         </div>
@@ -161,10 +179,66 @@ function Card({ card, t }) {
   );
 }
 
+/* The answer control for one question. Tapping beats typing on a cheap phone
+   in a second script: a tap cannot be misspelled and needs no keyboard. */
+function Answer({ question, t, onAnswer, disabled }) {
+  const [selected, setSelected] = useState("");
+
+  if (question.input_type === "select") {
+    return (
+      <div className="answer">
+        <span className="field-label">{t.choose}</span>
+        <select
+          className="select"
+          value={selected}
+          disabled={disabled}
+          onChange={(e) => {
+            const option = question.options.find((o) => String(o.value) === e.target.value);
+            setSelected(e.target.value);
+            if (option) onAnswer(option.value, option.label);
+          }}
+        >
+          <option value="">{t.choose}</option>
+          {question.options.map((o) => (
+            <option key={String(o.value)} value={String(o.value)}>{o.label}</option>
+          ))}
+        </select>
+      </div>
+    );
+  }
+
+  if (question.options?.length > 0) {
+    return (
+      <div className="answer">
+        <span className="field-label">{t.choose}</span>
+        {question.options.map((o) => (
+          <button
+            key={String(o.label)}
+            className="option"
+            disabled={disabled}
+            onClick={() => onAnswer(o.value, o.label)}
+          >
+            {o.label}
+          </button>
+        ))}
+        <button className="option skip" disabled={disabled} onClick={() => onAnswer(null, t.skip)}>
+          {t.skip}
+        </button>
+      </div>
+    );
+  }
+
+  return null;
+}
+
 export default function App() {
   const [language, setLanguage] = useState("hi");
+  const [name, setName] = useState("");
+  const [nameDraft, setNameDraft] = useState("");
   const [turns, setTurns] = useState([]);
   const [asked, setAsked] = useState([]);
+  const [answers, setAnswers] = useState({});
+  const [question, setQuestion] = useState(null);
   const [answer, setAnswer] = useState(null);
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -175,27 +249,22 @@ export default function App() {
 
   useEffect(() => {
     bottom.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [turns, answer, busy]);
+  }, [turns, answer, busy, question]);
 
-  async function send(text) {
-    const message = text.trim();
-    if (!message || busy) return;
-
-    const conversation = [...turns, { role: "user", text: message }];
-    setTurns(conversation);
-    setDraft("");
+  async function submit(conversation, nextAnswers, nextAsked) {
     setBusy(true);
     setFailed(false);
-
+    setQuestion(null);
     try {
-      const result = await ask(conversation, asked);
+      const result = await ask(conversation, nextAsked, nextAnswers);
+      if (result.language) setLanguage(result.language);
       if (result.type === "question") {
         setTurns([...conversation, { role: "assistant", text: result.question }]);
-        setAsked(result.asked || asked);
-        if (result.language) setLanguage(result.language);
+        setAsked(result.asked || nextAsked);
+        setQuestion(result);
       } else {
+        setTurns(conversation);
         setAnswer(result);
-        if (result.language) setLanguage(result.language);
       }
     } catch {
       setFailed(true);
@@ -204,30 +273,90 @@ export default function App() {
     }
   }
 
+  function describe(text) {
+    const message = text.trim();
+    if (!message || busy) return;
+    const conversation = [...turns, { role: "user", text: message }];
+    setTurns(conversation);
+    setDraft("");
+    submit(conversation, answers, asked);
+  }
+
+  /* value === null means "I do not know": the field stays absent, the matcher
+     keeps it UNKNOWN, and the person is told to confirm it at the office. */
+  function answerQuestion(value, label) {
+    if (busy || !question) return;
+    const conversation = [...turns, { role: "user", text: label }];
+    const nextAnswers = value === null ? answers : { ...answers, [question.field]: value };
+    setTurns(conversation);
+    setAnswers(nextAnswers);
+    submit(conversation, nextAnswers, asked);
+  }
+
   function restart() {
     setTurns([]);
     setAsked([]);
+    setAnswers({});
+    setQuestion(null);
     setAnswer(null);
     setFailed(false);
     setDraft("");
   }
 
+  const header = (
+    <header>
+      <h1>{t.title}</h1>
+      <p className="tagline">{t.tagline}</p>
+      <div className="lang-toggle" role="group" aria-label="Language">
+        <button onClick={() => setLanguage("hi")} aria-pressed={language === "hi"}>हिंदी</button>
+        <button onClick={() => setLanguage("en")} aria-pressed={language === "en"}>English</button>
+      </div>
+    </header>
+  );
+
+  // The name never leaves the device. It is here so the interview feels like
+  // a conversation, and it is deliberately not part of any request.
+  if (!name) {
+    return (
+      <div className="app">
+        {header}
+        <main>
+          <div className="name-step">
+            <label className="name-label" htmlFor="name">{t.namePrompt}</label>
+            <input
+              id="name"
+              className="name-input"
+              value={nameDraft}
+              onChange={(e) => setNameDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key !== "Enter") return;
+                if (e.nativeEvent?.isComposing || e.keyCode === 229) return;
+                e.preventDefault();
+                if (nameDraft.trim()) setName(nameDraft.trim());
+              }}
+              placeholder={t.namePlaceholder}
+              autoComplete="off"
+            />
+            <p className="name-note">{t.nameNote}</p>
+            <button
+              className="send wide"
+              disabled={!nameDraft.trim()}
+              onClick={() => setName(nameDraft.trim())}
+            >
+              {t.start}
+            </button>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="app">
-      <header>
-        <h1>{t.title}</h1>
-        <p className="tagline">{t.tagline}</p>
-        <div className="lang-toggle" role="group" aria-label="Language">
-          <button onClick={() => setLanguage("hi")} aria-pressed={language === "hi"}>
-            हिंदी
-          </button>
-          <button onClick={() => setLanguage("en")} aria-pressed={language === "en"}>
-            English
-          </button>
-        </div>
-      </header>
-
+      {header}
       <main>
+        {turns.length === 0 && <p className="greeting">{t.greeting(name)}</p>}
+
         <div className="turns">
           {turns.map((turn, i) => (
             <div key={i} className={`turn ${turn.role === "user" ? "user" : "bot"}`}>
@@ -239,11 +368,15 @@ export default function App() {
         {busy && <p className="thinking">{t.thinking}</p>}
         {failed && <p className="error">{t.error}</p>}
 
+        {question && !busy && (
+          <Answer question={question} t={t} onAnswer={answerQuestion} disabled={busy} />
+        )}
+
         {turns.length === 0 && !busy && (
           <div className="examples">
             <p>{t.examplesLabel}</p>
             {t.examples.map((example) => (
-              <button key={example} className="example" onClick={() => send(example)}>
+              <button key={example} className="example" onClick={() => describe(example)}>
                 {example}
               </button>
             ))}
@@ -253,46 +386,51 @@ export default function App() {
         {answer && (
           <section aria-live="polite">
             {answer.summary && <p className="summary">{answer.summary}</p>}
-
-            {/* Shown above the cards, not buried under them. */}
             <p className="disclaimer">{answer.disclaimer}</p>
 
-            {answer.cards?.map((card) => (
-              <Card key={card.scheme_id} card={card} t={t} />
-            ))}
+            {answer.not_eligible?.length > 0 && (
+              <div className="card">
+                <span className="field-label">{t.notEligible}</span>
+                {answer.not_eligible.map((n, i) => (
+                  <div className="field" key={i}>
+                    <p><strong>{n.name}</strong></p>
+                    <p>{n.reason}</p>
+                    {n.source_pages?.length > 0 && (
+                      <span className="cite">{t.page} {n.source_pages.join(", ")}</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {answer.cards?.map((card) => <Card key={card.scheme_id} card={card} t={t} />)}
 
             {answer.closing && <p className="summary">{answer.closing}</p>}
-
-            <button className="restart" onClick={restart}>
-              {t.restart}
-            </button>
+            <button className="restart" onClick={restart}>{t.restart}</button>
           </section>
         )}
         <div ref={bottom} />
       </main>
 
-      {!answer && (
+      {/* Typing is only offered for the opening description. Every question
+          after that is answered by tapping. */}
+      {!answer && !question && (
         <div className="composer">
           <div className="composer-inner">
             <textarea
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={(e) => {
-                // isComposing matters here more than in most apps. Typing
-                // Devanagari on Android goes through an IME, and Enter while
-                // a syllable is still being composed means "accept this
-                // character", not "send". Without this guard the message
-                // fires mid-word for exactly the users we built this for.
                 if (e.key !== "Enter" || e.shiftKey) return;
                 if (e.nativeEvent?.isComposing || e.keyCode === 229) return;
                 e.preventDefault();
-                send(draft);
+                describe(draft);
               }}
               placeholder={t.placeholder}
               aria-label={t.placeholder}
               rows={1}
             />
-            <button className="send" onClick={() => send(draft)} disabled={busy || !draft.trim()}>
+            <button className="send" onClick={() => describe(draft)} disabled={busy || !draft.trim()}>
               {t.send}
             </button>
           </div>

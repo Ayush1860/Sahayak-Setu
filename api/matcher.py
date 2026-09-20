@@ -71,15 +71,39 @@ VERDICT_TEXT = {
 # --------------------------------------------------------------------------
 
 def _test_range(criterion: dict, value: Any) -> Outcome:
-    if not isinstance(value, (int, float)) or isinstance(value, bool):
-        return Outcome.UNKNOWN
+    """Accepts a number, or a bucket the person chose from a list.
+
+    A bucket is an interval, and an interval against a range has three
+    honest answers, not two:
+
+        entirely inside the criterion   -> PASS
+        entirely outside it             -> FAIL
+        straddling its boundary         -> UNKNOWN
+
+    Someone who taps "36 to 45" against a rule of "up to 40" has not told us
+    whether they qualify. Treating that as either a pass or a fail would be
+    inventing an answer they did not give.
+    """
     low = criterion.get("min")
     high = criterion.get("max")
-    if low is not None and value < low:
+
+    if isinstance(value, dict):
+        start, end = value.get("min"), value.get("max")
+        if not isinstance(start, (int, float)) or not isinstance(end, (int, float)):
+            return Outcome.UNKNOWN
+    elif isinstance(value, (int, float)) and not isinstance(value, bool):
+        start = end = value
+    else:
+        return Outcome.UNKNOWN
+
+    if high is not None and start > high:
         return Outcome.FAIL
-    if high is not None and value > high:
+    if low is not None and end < low:
         return Outcome.FAIL
-    return Outcome.PASS
+
+    inside_low = low is None or start >= low
+    inside_high = high is None or end <= high
+    return Outcome.PASS if inside_low and inside_high else Outcome.UNKNOWN
 
 
 def _test_one_of(criterion: dict, value: Any) -> Outcome:

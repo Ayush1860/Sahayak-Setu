@@ -196,3 +196,27 @@ def test_the_response_never_names_the_provider_or_model(monkeypatch):
     body = r["body"].lower()
     for leak in ("groq", "bedrock", "llm", "provider", "some-secret-model-name", "anthropic"):
         assert leak not in body, f"{leak!r} leaked to the browser"
+
+
+def test_a_question_carries_its_tap_options():
+    """The interview computes options; the handler must forward them, or the
+    browser silently falls back to a text box nobody can use."""
+    r = call({"conversation": [{"role": "user", "text": "hello"}]}, FakeLLM('{"profile": {}}'))
+    out = body_of(r)
+    assert out["type"] == "question"
+    assert out["input_type"] in ("choice", "range", "select", "text")
+    if out["input_type"] != "text":
+        assert out["options"], "a non-text question must offer options"
+        assert all("label" in o for o in out["options"])
+
+
+def test_tapped_answers_reach_the_profile_without_the_model():
+    """A provider outage must not break the interview: an explicit choice is
+    data in its own right."""
+    r = call({"conversation": [{"role": "user", "text": "hi"}],
+              "answers": {"has_existing_unit": False, "area_type": "rural"}},
+             FakeLLM('{"profile": {}}'))
+    out = body_of(r)
+    assert out["type"] in ("question", "answer")
+    if out["type"] == "question":
+        assert out["field"] not in ("has_existing_unit", "area_type")

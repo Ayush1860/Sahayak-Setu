@@ -80,6 +80,7 @@ def validate(
     schemes: Sequence[dict],
     language: str = "en",
     profile: dict[str, Any] | None = None,
+    excluded: Sequence[dict] | None = None,
 ) -> dict[str, Any]:
     """Strip everything unsupported. Return a safe response, or the refusal.
 
@@ -167,10 +168,26 @@ def validate(
         dropped.append({"reason": "invented URLs removed from summary", "urls": removed})
 
     if not kept:
+        # A refusal that cannot say why is a dead end. The matcher knows
+        # exactly which requirement failed, so say it: the person can then
+        # tell whether it is a misunderstanding or a real disqualification,
+        # and argue their case at the office.
+        not_eligible = [
+            {
+                "name": visible(r.get(f"name_{lang}")) or visible(r.get("name_en")),
+                "reason": visible(r.get("reason")),
+                "source_pages": sorted({
+                    f["source_page"] for f in r.get("failed", [])
+                    if isinstance(f.get("source_page"), int)
+                }),
+            }
+            for r in (excluded or [])
+        ]
         return {
             "refused": True,
             "summary": REFUSAL[lang]["summary"],
             "cards": [],
+            "not_eligible": [n for n in not_eligible if n["reason"]],
             "closing": REFUSAL[lang]["closing"],
             "disclaimer": DISCLAIMER[lang],
             "dropped": dropped,

@@ -394,3 +394,82 @@ button:focus-visible {
     to { opacity: 1; transform: none; }
   }
 }
+
+
+/* ------------------------------------------------- name and tap answers */
+
+.name-step { margin: 2rem 0; }
+
+.name-label {
+  display: block;
+  font-size: 1.15rem;
+  margin-bottom: 0.7rem;
+}
+
+.name-input {
+  width: 100%;
+  min-height: var(--tap);
+  padding: 0.8rem 1.1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--pill);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 1.05rem;
+}
+
+.name-note {
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+  margin: 0.7rem 0 1.2rem;
+}
+
+.send.wide { width: 100%; }
+
+.greeting {
+  font-size: 1.1rem;
+  margin: 1.25rem 0 0.5rem;
+}
+
+.answer { margin: 1.1rem 0; }
+
+/* Full width and 56px tall: a thumb finds these without aiming. */
+.option {
+  display: block;
+  width: 100%;
+  min-height: 56px;
+  margin-top: 0.55rem;
+  padding: 0.8rem 1.1rem;
+  text-align: left;
+  background: var(--paper);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--ink);
+  font: inherit;
+  font-size: 1.02rem;
+  cursor: pointer;
+}
+
+.option:hover { border-color: var(--ink); }
+.option:disabled { opacity: 0.5; cursor: default; }
+
+/* "I do not know" is a real answer, not a failure. Available, not inviting. */
+.option.skip {
+  border-style: dashed;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+  min-height: 48px;
+}
+
+.select {
+  width: 100%;
+  min-height: 56px;
+  margin-top: 0.55rem;
+  padding: 0 1rem;
+  background: var(--paper);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--ink);
+  font: inherit;
+  font-size: 1.02rem;
+}
