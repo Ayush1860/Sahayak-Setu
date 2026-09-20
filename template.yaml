@@ -1,0 +1,121 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Sahayak Setu. An interview that finds government schemes a person may
+  qualify for. Eligibility is decided by Python in api/matcher.py, never by
+  a model. No personal data is stored.
+
+Parameters:
+  BedrockModelId:
+    Type: String
+    Description: >
+      Inference profile id, not a bare model id. Most current Claude models
+      on Bedrock cannot be called by their plain model id. Discover valid
+      values with scratch/test_bedrock.py --list
+    Default: global.anthropic.claude-sonnet-5
+  AllowedOrigin:
+    Type: String
+    Description: The Amplify URL of the frontend. Do not leave it as * in production.
+    Default: "*"
+  SchemesBucketName:
+    Type: String
+    Description: Bucket holding the verified scheme corpus.
+
+Globals:
+  Function:
+    Runtime: python3.12
+    Timeout: 30
+    MemorySize: 1024
+    Architectures: [arm64]
+
+Resources:
+  SchemesBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref SchemesBucketName
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+
+  # Anonymous counters only. There is deliberately no attribute here that
+  # could hold a message, a profile, or anything about a person.
+  CounterTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+
+  AskFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: api/
+      Handler: ask_handler.handler
+      Environment:
+        Variables:
+          BEDROCK_MODEL_ID: !Ref BedrockModelId
+          SCHEMES_BUCKET: !Ref SchemesBucketName
+          SCHEMES_PREFIX: schemes/
+          COUNTER_TABLE: !Ref CounterTable
+          ALLOWED_ORIGIN: !Ref AllowedOrigin
+      Policies:
+        # Read the corpus. Read only, and only this bucket.
+        - Statement:
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:ListBucket
+              Resource:
+                - !Sub "arn:aws:s3:::${SchemesBucketName}"
+                - !Sub "arn:aws:s3:::${SchemesBucketName}/*"
+        # Invoke the model. No bedrock:Create*, no provisioned throughput.
+        # The wildcard region is required: a global inference profile routes
+        # to whichever region has capacity and needs invoke rights there.
+        - Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+                - bedrock:InvokeModelWithResponseStream
+              Resource:
+                - "arn:aws:bedrock:*::foundation-model/anthropic.*"
+                - !Sub "arn:aws:bedrock:*:${AWS::AccountId}:inference-profile/*"
+        # Counters. UpdateItem only. The function cannot read the table back,
+        # so a bug cannot turn it into a data source.
+        - Statement:
+            - Effect: Allow
+              Action: dynamodb:UpdateItem
+              Resource: !GetAtt CounterTable.Arn
+      Events:
+        Ask:
+          Type: HttpApi
+          Properties:
+            Path: /ask
+            Method: POST
+        AskOptions:
+          Type: HttpApi
+          Properties:
+            Path: /ask
+            Method: OPTIONS
+
+Outputs:
+  ApiUrl:
+    Description: POST your conversation here.
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/ask"
+  SchemesBucket:
+    Value: !Ref SchemesBucketName
+  CounterTable:
+    Value: !Ref CounterTable

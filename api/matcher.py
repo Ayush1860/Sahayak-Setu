@@ -142,6 +142,7 @@ def _cite(criterion: dict) -> dict[str, Any]:
     return {
         "criterion_id": criterion.get("criterion_id"),
         "field": criterion.get("field"),
+        "test": criterion.get("test"),
         "label_en": criterion.get("label_en"),
         "label_hi": criterion.get("label_hi"),
         "source_page": criterion.get("source_page"),
@@ -264,6 +265,9 @@ def fields_that_would_help(results: dict[str, list[dict]]) -> list[str]:
     counts: dict[str, int] = {}
     for result in results.get("likely", []):
         for item in result["pending"]:
+            # A manual criterion is settled at the office, never by a question.
+            if item.get("test") == "manual":
+                continue
             field = item.get("field")
             if field in PROFILE_FIELDS:
                 counts[field] = counts.get(field, 0) + 1
