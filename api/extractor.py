@@ -12,13 +12,14 @@ Dropping is always safe - the interview will ask the person directly.
 
 from __future__ import annotations
 
-import json
 import re
 import unicodedata
 from pathlib import Path
-from typing import Any, Sequence
+from typing import Any, Callable, Sequence
 
+import llm
 from fields import FIELD_TYPES, NUMERIC_BOUNDS, PROFILE_FIELDS, VOCABULARIES
+from jsonio import ExtractionError, parse_json_object, strip_fences  # noqa: F401  (re-exported)
 
 PROMPT_PATH = Path(__file__).parent / "prompts" / "extractor_system.txt"
 
@@ -31,12 +32,7 @@ REQUIRED_FIELDS: tuple[str, ...] = (
     "has_existing_unit",
 )
 
-_FENCE = re.compile(r"^\s*```(?:json)?\s*(.*?)\s*```\s*$", re.DOTALL)
 _DEVANAGARI = re.compile(r"[ऀ-ॿ]")
-
-
-class ExtractionError(RuntimeError):
-    """The model returned something that is not a usable JSON object."""
 
 
 def load_system_prompt() -> str:
@@ -51,33 +47,6 @@ def detect_language(text: str) -> str:
     Devanagari word gets 'hi', which is right. We never guess the other way.
     """
     return "hi" if _DEVANAGARI.search(text) else "en"
-
-
-def strip_fences(raw: str) -> str:
-    """Models wrap JSON in markdown fences no matter how firmly you ask them not to."""
-    match = _FENCE.match(raw)
-    if match:
-        return match.group(1)
-    return raw.strip()
-
-
-def parse_json_object(raw: str) -> dict[str, Any]:
-    text = strip_fences(raw)
-    try:
-        parsed = json.loads(text)
-    except json.JSONDecodeError:
-        # Last resort: the outermost {...} in the text.
-        start, end = text.find("{"), text.rfind("}")
-        if start == -1 or end <= start:
-            raise ExtractionError(f"no JSON object in model output: {raw[:200]!r}")
-        try:
-            parsed = json.loads(text[start : end + 1])
-        except json.JSONDecodeError as exc:
-            raise ExtractionError(f"model output is not valid JSON: {exc}") from exc
-
-    if not isinstance(parsed, dict):
-        raise ExtractionError(f"expected a JSON object, got {type(parsed).__name__}")
-    return parsed
 
 
 def clean_value(field: str, value: Any) -> Any | None:
@@ -146,47 +115,26 @@ def missing_fields(profile: dict[str, Any]) -> list[str]:
     return [f for f in REQUIRED_FIELDS if f not in profile]
 
 
-def build_messages(conversation: Sequence[dict[str, str]]) -> list[dict[str, Any]]:
-    """Conversation turns into the Bedrock Converse message shape."""
-    return [
-        {"role": turn["role"], "content": [{"text": turn["text"]}]}
-        for turn in conversation
-        if turn.get("text")
-    ]
-
-
 def user_text(conversation: Sequence[dict[str, str]]) -> str:
     return " ".join(t.get("text", "") for t in conversation if t.get("role") == "user")
 
 
-def call_model(client: Any, model_id: str, conversation: Sequence[dict[str, str]]) -> str:
-    response = client.converse(
-        modelId=model_id,
-        system=[{"text": load_system_prompt()}],
-        messages=build_messages(conversation),
-        inferenceConfig={"maxTokens": 600, "temperature": 0},
-    )
-    return response["output"]["message"]["content"][0]["text"]
-
-
 def extract(
     conversation: Sequence[dict[str, str]],
-    client: Any,
-    model_id: str,
+    complete: Callable[..., dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Return {"profile": {...}, "missing": [...], "language": "hi"|"en"}.
 
     conversation is a list of {"role": "user"|"assistant", "text": str}.
+    complete defaults to llm.complete; tests pass their own.
+
     On any model failure the profile comes back empty rather than wrong: an
     empty profile means the interview asks more questions, which is recoverable.
     """
+    complete = complete or llm.complete
     language = detect_language(user_text(conversation))
 
-    try:
-        parsed = parse_json_object(call_model(client, model_id, conversation))
-    except ExtractionError:
-        return {"profile": {}, "missing": list(REQUIRED_FIELDS), "language": language}
-
+    parsed = complete(load_system_prompt(), conversation) or {}
     profile = clean_profile(parsed.get("profile"))
 
     # Trust our own script detection over the model's self-report.

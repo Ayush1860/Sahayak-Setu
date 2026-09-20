@@ -10,3 +10,8 @@ web/dist/
 web/build/
 *.pdf
 .DS_Store
+
+# secrets
+.env
+.env.*
+samconfig.toml

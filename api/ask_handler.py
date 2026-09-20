@@ -26,13 +26,13 @@ import boto3
 import explainer
 import extractor
 import interview
+import llm
 import validator
 from matcher import match
 
 REGION = os.environ.get("AWS_REGION", "ap-south-1")
 SCHEMES_BUCKET = os.environ.get("SCHEMES_BUCKET", "")
 SCHEMES_PREFIX = os.environ.get("SCHEMES_PREFIX", "schemes/")
-MODEL_ID = os.environ.get("BEDROCK_MODEL_ID", "")
 COUNTER_TABLE = os.environ.get("COUNTER_TABLE", "")
 ALLOWED_ORIGIN = os.environ.get("ALLOWED_ORIGIN", "*")
 
@@ -41,16 +41,8 @@ ALLOWED_ORIGIN = os.environ.get("ALLOWED_ORIGIN", "*")
 CACHE_DIR = Path("/tmp/schemes")
 _schemes_cache: list[dict] | None = None
 
-_bedrock = None
 _s3 = None
 _dynamo = None
-
-
-def bedrock():
-    global _bedrock
-    if _bedrock is None:
-        _bedrock = boto3.client("bedrock-runtime", region_name=REGION)
-    return _bedrock
 
 
 def s3():
@@ -155,7 +147,7 @@ def handler(event: dict[str, Any], context: Any = None) -> dict[str, Any]:
 
     schemes = load_schemes()
 
-    extracted = extractor.extract(conversation, bedrock(), MODEL_ID)
+    extracted = extractor.extract(conversation)
     profile, language = extracted["profile"], extracted["language"]
 
     question = interview.next_question(profile, schemes, asked=asked, language=language)
@@ -176,7 +168,7 @@ def handler(event: dict[str, Any], context: Any = None) -> dict[str, Any]:
         count("refused")
         answer = validator.validate({}, [], schemes, language)
     else:
-        draft = explainer.explain(shortlist, schemes, bedrock(), MODEL_ID, language)
+        draft = explainer.explain(shortlist, schemes, language)
         answer = validator.validate(draft, shortlist, schemes, language)
         count("refused" if answer["refused"] else "answered",
               [c["scheme_id"] for c in answer["cards"]])
@@ -184,4 +176,5 @@ def handler(event: dict[str, Any], context: Any = None) -> dict[str, Any]:
     answer["type"] = "answer"
     answer["language"] = language
     answer["request_id"] = str(uuid.uuid4())
+    answer["llm"] = llm.describe()
     return respond(200, answer)

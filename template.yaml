@@ -6,6 +6,23 @@ Description: >
   a model. No personal data is stored.
 
 Parameters:
+  LlmProvider:
+    Type: String
+    AllowedValues: [groq, bedrock]
+    Default: groq
+    Description: >
+      Which inference provider the language layer uses. Bedrock model
+      invocation was blocked account wide during the build, so groq is the
+      default. Switching back is this one value; no code changes.
+  GroqApiKey:
+    Type: String
+    NoEcho: true
+    Default: ""
+    Description: Groq API key. Passed at deploy time, never committed.
+  GroqModel:
+    Type: String
+    Default: llama-3.3-70b-versatile
+    Description: Verify against https://console.groq.com/docs/models before deploying.
   BedrockModelId:
     Type: String
     Description: >
@@ -67,6 +84,9 @@ Resources:
       Handler: ask_handler.handler
       Environment:
         Variables:
+          LLM_PROVIDER: !Ref LlmProvider
+          GROQ_API_KEY: !Ref GroqApiKey
+          GROQ_MODEL: !Ref GroqModel
           BEDROCK_MODEL_ID: !Ref BedrockModelId
           SCHEMES_BUCKET: !Ref SchemesBucketName
           SCHEMES_PREFIX: schemes/

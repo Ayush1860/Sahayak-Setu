@@ -9,27 +9,31 @@ import pytest
 
 import extractor
 from fields import PROFILE_FIELDS
+from jsonio import ExtractionError, parse_json_object
 
 SCHEMA = json.loads(
     (Path(__file__).resolve().parents[2] / "schema" / "scheme.schema.json").read_text(encoding="utf-8")
 )
 
 
-class FakeBedrock:
-    """Stands in for boto3 bedrock-runtime. Returns whatever text it was given."""
+class FakeLLM:
+    """Stands in for llm.complete. Parses the raw text the way llm.py would."""
 
     def __init__(self, text: str):
         self.text = text
         self.calls: list[dict] = []
 
-    def converse(self, **kwargs):
-        self.calls.append(kwargs)
-        return {"output": {"message": {"content": [{"text": self.text}]}}}
+    def __call__(self, system, messages):
+        self.calls.append({"system": system, "messages": list(messages)})
+        try:
+            return parse_json_object(self.text)
+        except ExtractionError:
+            return {}
 
 
 def run(text: str, conversation=None):
     conversation = conversation or [{"role": "user", "text": "hello"}]
-    return extractor.extract(conversation, FakeBedrock(text), "fake-model")
+    return extractor.extract(conversation, FakeLLM(text))
 
 
 # ---------------------------------------------------------------- the contract
@@ -175,29 +179,23 @@ def test_assistant_turns_do_not_decide_language():
 # ------------------------------------------------------------ plumbing
 
 def test_system_prompt_is_sent_and_lives_in_its_own_file():
-    client = FakeBedrock('{"profile": {}}')
-    extractor.extract([{"role": "user", "text": "hi"}], client, "fake-model")
-    assert client.calls[0]["system"][0]["text"] == extractor.PROMPT_PATH.read_text(encoding="utf-8")
+    fake = FakeLLM('{"profile": {}}')
+    extractor.extract([{"role": "user", "text": "hi"}], fake)
+    assert fake.calls[0]["system"] == extractor.PROMPT_PATH.read_text(encoding="utf-8")
     assert extractor.PROMPT_PATH.suffix == ".txt"
 
 
-def test_temperature_is_zero():
-    client = FakeBedrock('{"profile": {}}')
-    extractor.extract([{"role": "user", "text": "hi"}], client, "fake-model")
-    assert client.calls[0]["inferenceConfig"]["temperature"] == 0
-
-
 def test_conversation_is_passed_through_in_order():
-    client = FakeBedrock('{"profile": {}}')
+    fake = FakeLLM('{"profile": {}}')
     extractor.extract(
         [{"role": "user", "text": "one"},
          {"role": "assistant", "text": "two"},
          {"role": "user", "text": "three"}],
-        client, "fake-model",
+        fake,
     )
-    sent = client.calls[0]["messages"]
+    sent = fake.calls[0]["messages"]
     assert [m["role"] for m in sent] == ["user", "assistant", "user"]
-    assert sent[0]["content"][0]["text"] == "one"
+    assert sent[0]["text"] == "one"
 
 
 def test_missing_list_shrinks_as_fields_arrive():

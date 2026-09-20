@@ -9,9 +9,9 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Sequence
+from typing import Any, Callable, Sequence
 
-from extractor import parse_json_object, ExtractionError
+import llm
 
 PROMPT_PATH = Path(__file__).parent / "prompts" / "explainer_system.txt"
 
@@ -55,26 +55,14 @@ def build_input(results: Sequence[dict], schemes: Sequence[dict], language: str)
     return {"language": language, "schemes": payload}
 
 
-def call_model(client: Any, model_id: str, payload: dict[str, Any]) -> str:
-    response = client.converse(
-        modelId=model_id,
-        system=[{"text": load_system_prompt()}],
-        messages=[{"role": "user", "content": [{"text": json.dumps(payload, ensure_ascii=False)}]}],
-        inferenceConfig={"maxTokens": 2000, "temperature": 0},
-    )
-    return response["output"]["message"]["content"][0]["text"]
-
-
 def explain(
     results: Sequence[dict],
     schemes: Sequence[dict],
-    client: Any,
-    model_id: str,
     language: str = "en",
+    complete: Callable[..., dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Return the model's draft. Not safe to show until validator.py has run."""
+    complete = complete or llm.complete
     payload = build_input(results, schemes, language)
-    try:
-        return parse_json_object(call_model(client, model_id, payload))
-    except (ExtractionError, KeyError, IndexError):
-        return {"summary": "", "cards": [], "closing": ""}
+    message = [{"role": "user", "text": json.dumps(payload, ensure_ascii=False)}]
+    return complete(load_system_prompt(), message) or {"summary": "", "cards": [], "closing": ""}
