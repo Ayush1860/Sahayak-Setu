@@ -149,6 +149,17 @@ def explain(exc: ClientError, region: str, model_id: str | None) -> None:
             "  bedrock:InvokeModel, and sts:GetCallerIdentity.",
             file=sys.stderr,
         )
+    elif code == "ValidationException" and "not allowed" in message.lower():
+        print(
+            "Almost certainly model access, not permissions. Bedrock reports this\n"
+            "  as a validation error even when the real cause is an unsigned model\n"
+            "  agreement. Confirm with:\n"
+            f"    aws bedrock get-foundation-model-availability --model-id {model_id} \\\n"
+            f"      --region {region}\n"
+            "  authorizationStatus NOT_AUTHORIZED means the agreement is unsigned.\n"
+            "  Fix it in the Bedrock console under Model access, in this region.",
+            file=sys.stderr,
+        )
     elif code == "ValidationException" and "on-demand" in message.lower():
         print(
             "This model cannot be called by its bare model id. It needs an inference profile.\n"
