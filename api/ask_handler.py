@@ -14,6 +14,7 @@ that is the line not to cross.
 
 from __future__ import annotations
 
+import base64
 import json
 import os
 import time
@@ -26,6 +27,7 @@ import boto3
 import explainer
 import extractor
 import interview
+import speech
 import validator
 from matcher import match
 
@@ -129,6 +131,24 @@ def respond(status: int, body: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def transcribe_handler(body: dict[str, Any]) -> dict[str, Any]:
+    """Audio in, text out. The audio is forwarded and then dropped."""
+    try:
+        audio = base64.b64decode(body.get("audio") or "", validate=True)
+    except Exception:
+        return respond(400, {"error": "audio must be base64"})
+
+    try:
+        result = speech.transcribe(audio, body.get("content_type") or "audio/webm")
+    except speech.SpeechError as exc:
+        # The person types instead. Never invent what they might have said.
+        count("speech_failed")
+        return respond(200, {"type": "transcript", "text": "", "error": str(exc)})
+
+    count("speech_ok")
+    return respond(200, {"type": "transcript", **result})
+
+
 def handler(event: dict[str, Any], context: Any = None) -> dict[str, Any]:
     if (event.get("requestContext", {}).get("http", {}).get("method")
             or event.get("httpMethod")) == "OPTIONS":
@@ -138,6 +158,10 @@ def handler(event: dict[str, Any], context: Any = None) -> dict[str, Any]:
         body = json.loads(event.get("body") or "{}")
     except json.JSONDecodeError:
         return respond(400, {"error": "body is not JSON"})
+
+    path = (event.get("rawPath") or event.get("path") or "")
+    if path.endswith("/transcribe"):
+        return transcribe_handler(body)
 
     conversation = body.get("conversation") or []
     asked = body.get("asked") or []

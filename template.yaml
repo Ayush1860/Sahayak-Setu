@@ -27,6 +27,13 @@ Parameters:
       llama-3.3-70b-versatile: it is Enterprise only and a Developer key
       cannot call it. Re-check https://console.groq.com/docs/models before
       deploying; Groq rotates ids.
+  SarvamApiKey:
+    Type: String
+    NoEcho: true
+    Default: ""
+    Description: >
+      Sarvam AI subscription key for speech to text. Kept in the function so
+      it never reaches the browser. Empty disables the microphone.
   BedrockModelId:
     Type: String
     Description: >
@@ -89,6 +96,7 @@ Resources:
       Environment:
         Variables:
           LLM_PROVIDER: !Ref LlmProvider
+          SARVAM_API_KEY: !Ref SarvamApiKey
           GROQ_API_KEY: !Ref GroqApiKey
           GROQ_MODEL: !Ref GroqModel
           BEDROCK_MODEL_ID: !Ref BedrockModelId
@@ -133,6 +141,16 @@ Resources:
           Type: HttpApi
           Properties:
             Path: /ask
+            Method: OPTIONS
+        Transcribe:
+          Type: HttpApi
+          Properties:
+            Path: /transcribe
+            Method: POST
+        TranscribeOptions:
+          Type: HttpApi
+          Properties:
+            Path: /transcribe
             Method: OPTIONS
 
 Outputs:

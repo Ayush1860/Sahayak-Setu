@@ -11,3 +11,13 @@ export async function ask(conversation, asked, answers) {
   if (!response.ok) throw new Error(`api returned ${response.status}`);
   return response.json();
 }
+
+export async function transcribe(audio, contentType) {
+  const response = await fetch(`${BASE}/transcribe`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ audio, content_type: contentType }),
+  });
+  if (!response.ok) throw new Error(`transcribe returned ${response.status}`);
+  return response.json();
+}

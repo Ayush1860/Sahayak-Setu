@@ -473,3 +473,33 @@ button:focus-visible {
   font: inherit;
   font-size: 1.02rem;
 }
+
+
+/* ------------------------------------------------------------ speaking */
+
+.send.mic {
+  padding: 0 1.2rem;
+  background: var(--accent);
+  touch-action: none;          /* hold to speak, do not scroll the page */
+  user-select: none;
+}
+
+.send.mic.recording {
+  background: #b3261e;
+  animation: pulse 1.1s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .send.mic.recording { animation: none; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.72; }
+}
+
+.listening {
+  color: #b3261e;
+  font-size: 0.95rem;
+  padding: 0.4rem 0.2rem;
+}

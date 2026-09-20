@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { ask } from "./api";
+import { ask, transcribe } from "./api";
+import { micSupported, startRecording } from "./mic";
 
 const COPY = {
   hi: {
@@ -33,6 +34,10 @@ const COPY = {
     verifiedOn: "जाँच की तारीख",
     page: "पृष्ठ",
     error: "अभी जवाब नहीं मिल पाया। कृपया दोबारा कोशिश करें।",
+    speak: "बोलिए",
+    listening: "सुन रहे हैं... छोड़ने पर रुक जाएगा",
+    speakHint: "बोलकर बताइए, या टाइप कीजिए",
+    speechFailed: "आवाज़ समझ नहीं आई। कृपया टाइप कीजिए।",
     notEligible: "यह योजना अभी आप पर लागू नहीं होती",
   },
   en: {
@@ -66,6 +71,10 @@ const COPY = {
     verifiedOn: "Checked on",
     page: "Page",
     error: "We could not get an answer. Please try again.",
+    speak: "Hold to speak",
+    listening: "Listening... let go to stop",
+    speakHint: "Speak, or type instead",
+    speechFailed: "We could not hear that. Please type instead.",
     notEligible: "This scheme does not apply to you right now",
   },
 };
@@ -243,7 +252,11 @@ export default function App() {
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
   const [draft, setDraft] = useState("");
+  const [recording, setRecording] = useState(false);
+  const [speechError, setSpeechError] = useState(false);
+  const recorder = useRef(null);
   const bottom = useRef(null);
+  const canSpeak = micSupported();
 
   const t = COPY[language];
 
@@ -291,6 +304,41 @@ export default function App() {
     setTurns(conversation);
     setAnswers(nextAnswers);
     submit(conversation, nextAnswers, asked);
+  }
+
+  async function beginSpeaking() {
+    if (busy || recording) return;
+    setSpeechError(false);
+    try {
+      recorder.current = await startRecording();
+      setRecording(true);
+    } catch {
+      // Permission refused, or no microphone. The keyboard is still there.
+      setSpeechError(true);
+    }
+  }
+
+  async function finishSpeaking() {
+    if (!recording || !recorder.current) return;
+    setRecording(false);
+    setBusy(true);
+    try {
+      const clip = await recorder.current.stop();
+      recorder.current = null;
+      const result = await transcribe(clip.audio, clip.contentType);
+      if (result.text) {
+        // Put it in the box rather than sending it. A person should see what
+        // was heard, and be able to correct it, before it becomes an answer.
+        setDraft(result.text);
+        if (result.language) setLanguage(result.language);
+      } else {
+        setSpeechError(true);
+      }
+    } catch {
+      setSpeechError(true);
+    } finally {
+      setBusy(false);
+    }
   }
 
   function restart() {
@@ -365,8 +413,10 @@ export default function App() {
           ))}
         </div>
 
-        {busy && <p className="thinking">{t.thinking}</p>}
+        {busy && !recording && <p className="thinking">{t.thinking}</p>}
+        {recording && <p className="listening">{t.listening}</p>}
         {failed && <p className="error">{t.error}</p>}
+        {speechError && <p className="error">{t.speechFailed}</p>}
 
         {question && !busy && (
           <Answer question={question} t={t} onAnswer={answerQuestion} disabled={busy} />
@@ -430,9 +480,23 @@ export default function App() {
               aria-label={t.placeholder}
               rows={1}
             />
-            <button className="send" onClick={() => describe(draft)} disabled={busy || !draft.trim()}>
-              {t.send}
-            </button>
+            {canSpeak && !draft.trim() ? (
+              <button
+                className={`send mic${recording ? " recording" : ""}`}
+                aria-label={t.speak}
+                onPointerDown={beginSpeaking}
+                onPointerUp={finishSpeaking}
+                onPointerLeave={finishSpeaking}
+                onPointerCancel={finishSpeaking}
+                disabled={busy && !recording}
+              >
+                {recording ? "..." : t.speak}
+              </button>
+            ) : (
+              <button className="send" onClick={() => describe(draft)} disabled={busy || !draft.trim()}>
+                {t.send}
+              </button>
+            )}
           </div>
         </div>
       )}
