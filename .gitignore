@@ -15,3 +15,5 @@ web/build/
 .env
 .env.*
 samconfig.toml
+web/node_modules/
+web/dist/

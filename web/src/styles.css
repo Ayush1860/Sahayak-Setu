@@ -1,0 +1,369 @@
+/* Visual language borrowed from sarvam.ai: near-black ink on near-white,
+   a warm saffron-to-periwinkle wash behind the header, neutral greys instead
+   of borders, pill buttons, and large headings at light weight with tight
+   negative tracking.
+
+   Two deliberate departures, because the audience is different. Sarvam's
+   readers are developers on laptops; ours may be reading at arm's length on
+   a cheap phone in daylight.
+
+   1. No web fonts. Sarvam loads Matter and Season Mix. We use the Devanagari
+      fonts already on the device, so nothing renders as boxes while a font
+      is in flight on a slow connection.
+   2. Body text stays at 19px and full contrast. The light greys are for
+      surfaces and labels, never for anything a person has to read. */
+
+:root {
+  --ink: #1f1f1f;
+  --ink-soft: #666666;
+  --paper: #ffffff;
+  --surface: #f5f5f5;
+  --surface-2: #f0f0f0;
+  --line: #e6e4e0;
+  --accent: #3333cc;
+  --accent-wash: #eeeefb;
+
+  /* The hero wash. Saffron into periwinkle, the way the source site opens. */
+  --wash-warm: #f7c99b;
+  --wash-cool: #c9cdf0;
+
+  --warn-bg: #fdf6e7;
+  --warn-line: #ecdcae;
+  --warn-ink: #6b5313;
+
+  --base: 19px;
+  --radius: 14px;
+  --pill: 999px;
+  --tap: 52px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ink: #f2f0ec;
+    --ink-soft: #a0a4ab;
+    --paper: #141416;
+    --surface: #1c1d20;
+    --surface-2: #232428;
+    --line: #2d2f34;
+    --accent: #a8aaf5;
+    --accent-wash: #1e2040;
+    --wash-warm: #5d4326;
+    --wash-cool: #2c3160;
+    --warn-bg: #2a2416;
+    --warn-line: #4d431f;
+    --warn-ink: #ecdcae;
+  }
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: var(--base);
+  line-height: 1.6;
+  font-family: "Noto Sans Devanagari", "Nirmala UI", "Hind", system-ui,
+    -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Decorative only, and it sits behind everything. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 22rem;
+  background: linear-gradient(
+    180deg,
+    var(--wash-warm) 0%,
+    var(--wash-cool) 45%,
+    var(--paper) 100%
+  );
+  opacity: 0.55;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.app {
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: 0 16px 7rem;
+}
+
+/* ----------------------------------------------------------- header */
+
+header {
+  padding: 2.75rem 0 1.5rem;
+  text-align: center;
+}
+
+h1 {
+  /* Large, light, tight. The signature of the source site's headings. */
+  font-size: clamp(2.1rem, 9vw, 2.9rem);
+  font-weight: 450;
+  letter-spacing: -0.028em;
+  line-height: 1.12;
+  margin: 0 0 0.6rem;
+}
+
+.tagline {
+  margin: 0 auto;
+  max-width: 26rem;
+  color: var(--ink-soft);
+  font-size: 1rem;
+}
+
+.lang-toggle {
+  display: inline-flex;
+  margin-top: 1.4rem;
+  padding: 4px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--line);
+  border-radius: var(--pill);
+  backdrop-filter: blur(6px);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .lang-toggle {
+    background: rgba(28, 29, 32, 0.7);
+  }
+}
+
+.lang-toggle button {
+  min-height: 42px;
+  padding: 0 1.3rem;
+  border: 0;
+  border-radius: var(--pill);
+  background: transparent;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.lang-toggle button[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+/* ------------------------------------------------------------- chat */
+
+.turns {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.turn {
+  padding: 0.85rem 1.1rem;
+  border-radius: var(--radius);
+  max-width: 88%;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.turn.user {
+  align-self: flex-end;
+  background: var(--ink);
+  color: var(--paper);
+  border-bottom-right-radius: 4px;
+}
+
+.turn.bot {
+  align-self: flex-start;
+  background: var(--surface);
+  border-bottom-left-radius: 4px;
+}
+
+.thinking {
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+  padding: 0.4rem 0.2rem;
+}
+
+/* ------------------------------------------------------------ cards */
+
+.summary {
+  margin: 1.75rem 0 0.5rem;
+  font-size: 1.05rem;
+}
+
+.card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.35rem;
+  margin: 1.1rem 0;
+  box-shadow: 0 1px 2px rgba(31, 31, 31, 0.04);
+}
+
+.card h2 {
+  font-size: 1.25rem;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
+  margin: 0 0 0.9rem;
+}
+
+.field { margin: 1rem 0; }
+
+.field-label {
+  display: block;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 0.2rem;
+}
+
+.field p { margin: 0; }
+
+.card ul { margin: 0; padding-left: 1.2rem; }
+.card li { margin: 0.2rem 0; }
+
+/* The criterion the person actually meets. The point of the whole app,
+   so it is the one tinted block on the card. */
+.why {
+  background: var(--accent-wash);
+  border-radius: 10px;
+  padding: 0.8rem 0.95rem;
+}
+
+.sources {
+  margin-top: 1.1rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--line);
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.sources a { color: var(--accent); overflow-wrap: anywhere; }
+.verified { display: block; margin-top: 0.3rem; }
+
+/* Never hidden, never dismissible. */
+.disclaimer {
+  background: var(--warn-bg);
+  border: 1px solid var(--warn-line);
+  color: var(--warn-ink);
+  border-radius: var(--radius);
+  padding: 0.9rem 1.1rem;
+  margin: 1.35rem 0;
+  font-size: 0.95rem;
+}
+
+/* ------------------------------------------------------------ input */
+
+.composer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--paper);
+  border-top: 1px solid var(--line);
+  padding: 0.75rem 16px calc(0.75rem + env(safe-area-inset-bottom));
+}
+
+.composer-inner {
+  max-width: 34rem;
+  margin: 0 auto;
+  display: flex;
+  gap: 0.6rem;
+}
+
+textarea {
+  flex: 1;
+  min-height: var(--tap);
+  max-height: 8rem;
+  padding: 0.8rem 1.1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--pill);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 1rem;
+  resize: none;
+}
+
+textarea::placeholder { color: var(--ink-soft); }
+
+textarea:focus-visible,
+button:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.send {
+  min-width: var(--tap);
+  min-height: var(--tap);
+  padding: 0 1.5rem;
+  border: 0;
+  border-radius: var(--pill);
+  background: var(--ink);
+  color: var(--paper);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.send:disabled { opacity: 0.35; cursor: default; }
+
+.restart {
+  display: block;
+  margin: 2.25rem auto 0;
+  min-height: 46px;
+  padding: 0 1.4rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--pill);
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.error {
+  background: var(--warn-bg);
+  border: 1px solid var(--warn-line);
+  color: var(--warn-ink);
+  border-radius: var(--radius);
+  padding: 0.9rem 1.1rem;
+  margin: 1rem 0;
+}
+
+.examples { margin: 1.5rem 0; }
+
+.examples p {
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+  margin: 0 0 0.6rem;
+  text-align: center;
+}
+
+.example {
+  display: block;
+  width: 100%;
+  text-align: left;
+  min-height: 50px;
+  padding: 0.8rem 1.1rem;
+  margin-bottom: 0.55rem;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.example:hover { background: var(--surface); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .turn, .card { animation: rise 0.2s ease-out; }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: none; }
+  }
+}
