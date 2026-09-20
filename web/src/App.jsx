@@ -371,6 +371,10 @@ export default function App() {
 
   const header = (
     <header>
+      {/* The mark, not the full lockup: the printed logo spells the name in
+          Latin, and a Hindi-first app should show the name in Devanagari.
+          Decorative here, because the h1 below already says it. */}
+      <img className="logo" src="/logo-mark.webp" alt="" width="160" height="86" />
       <h1>{t.title}</h1>
       <p className="tagline">{t.tagline}</p>
       <div className="lang-toggle" role="group" aria-label="Language">

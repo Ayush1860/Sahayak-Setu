@@ -1,3 +1,5 @@
+<img src="assets/logo.webp" alt="Sahayak Setu" width="360">
+
 # Sahayak Setu
 
 **An interview, not a search box.** A person describes their work in Hindi, by
