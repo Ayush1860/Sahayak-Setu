@@ -28,6 +28,17 @@ except ImportError:
     sys.exit("boto3 is not installed. Run: pip install boto3")
 
 DEFAULT_REGION = "ap-south-1"
+
+# Order to try when nothing is passed to --model-id. Matched as substrings
+# against whatever ids your account actually exposes, so an entry that does
+# not exist in your region is simply skipped.
+PREFERRED_MODELS = (
+    "claude-opus-5",
+    "claude-sonnet-5",
+    "claude-haiku-4-5",
+    "claude-opus-4-8",
+    "claude-sonnet-4-6",
+)
 PROMPT = "Reply with exactly the words: bedrock is working."
 
 
@@ -74,7 +85,15 @@ def choose(models: list[dict], profiles: list[dict]) -> str | None:
     callable only through one, and a profile id also works where a direct id does."""
     active = [p for p in profiles if p.get("status", "ACTIVE") == "ACTIVE"]
     if active:
-        return active[0]["inferenceProfileId"]
+        # Newest first, otherwise the oldest profile in the list wins by accident.
+        def rank(profile: dict) -> int:
+            pid = profile["inferenceProfileId"]
+            for i, name in enumerate(PREFERRED_MODELS):
+                if name in pid:
+                    return i
+            return len(PREFERRED_MODELS)
+
+        return sorted(active, key=rank)[0]["inferenceProfileId"]
     on_demand = [m for m in models if "ON_DEMAND" in (m.get("inferenceTypesSupported") or [])]
     if on_demand:
         return on_demand[0]["modelId"]
@@ -107,7 +126,15 @@ def explain(exc: ClientError, region: str, model_id: str | None) -> None:
     message = exc.response.get("Error", {}).get("Message", "")
     print(f"\n{code}: {message}\n", file=sys.stderr)
 
-    if code == "AccessDeniedException" and "model" in message.lower():
+    if code == "AccessDeniedException" and "being verified" in message.lower():
+        print(
+            "Nothing is wrong with your code or your IAM policy.\n"
+            "  AWS verifies new accounts before allowing model invocation. It usually\n"
+            "  clears in under 2 hours. Listing models works before invoking does.\n"
+            "  Re-run this exact command later; no change is needed.",
+            file=sys.stderr,
+        )
+    elif code == "AccessDeniedException" and "model" in message.lower():
         print(
             "Model access has not been granted in this region.\n"
             f"  Bedrock console -> region {region} -> Model access -> Modify model access\n"
